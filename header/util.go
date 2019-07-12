@@ -54,6 +54,17 @@ func ParseNet(src string) (string, int) {
 	}
 }
 
+//a.b.c.d -> []byte{a,b,c,d}
+func IpStr2Bytes(ip string) [4]byte {
+	ns := strings.Split(ip, ".")
+	res := [4]byte{0,0,0,0}
+	for i := 0; i<len(ns) && i<4; i++ {
+		n, _ := strconv.Atoi(ns[i])
+		res[i] = byte(n)
+	}
+	return res
+}
+
 func MaskNumber2Mask(mask int) uint32 {
 	res := uint32(0)
 	for i := 0; i<mask; i++ {
