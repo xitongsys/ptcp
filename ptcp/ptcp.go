@@ -41,6 +41,35 @@ func NewPTCP() (*PTCP, error) {
 	}, nil
 }
 
+func (p *PTCP) CloseListener(key string) {
+	p.routerListener.Delete(key)
+}
+
+func (p *PTCP) CreateListener(key string, listener *Listener) {
+	go func(){
+		for {
+			s := <- listener.OutputChan
+			p.raw.Write([]byte(s), key)
+		}
+	}()
+	p.routerListener.Store(key, listener)
+}
+
+func (p *PTCP) CreateConn(localAddr string, remoteAddr string, conn *Conn) {
+	key := localAddr + ":" + remoteAddr
+	go func(){
+		for {
+			s := <- conn.OutputChan
+			p.raw.Write([]byte(s), remoteAddr)
+		}
+	}()
+	p.router.Store(key, conn)
+}
+
+func (p *PTCP) CloseConn(key string){
+	p.router.Delete(key)
+}
+
 func (p *PTCP) Start() {
 	go func(){
 		for {
@@ -49,10 +78,9 @@ func (p *PTCP) Start() {
 				if proto, src, dst, err := header.GetBase(data); err == nil && proto == "tcp" {
 					key := dst + ":" + src
 					if value, ok := p.router.Load(key); ok {
-						_,_,_,_,tcpData,_ := header.Get(data)
 						conn := value.(Conn)
 						select {
-						case conn.InputChan <- string(tcpData):
+						case conn.InputChan <- string(data):
 						}
 
 					}else if value, ok := p.routerListener.Load(dst); ok {

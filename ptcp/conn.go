@@ -5,15 +5,20 @@ import (
 	"time"
 	"net"
 )
+
 var CONNCHANBUFSIZE = 1024
 
 type Conn struct {
+	localAddress *Addr
+	remoteAddress *Addr
 	InputChan chan string
 	OutputChan chan string
 }
 
-func NewConn() *Conn {
+func NewConn(localAddr string, remoteAddr string) *Conn {
 	return &Conn{
+		localAddress: NewAddr(localAddr),
+		remoteAddress: NewAddr(remoteAddr),
 		InputChan: make(chan string, CONNCHANBUFSIZE),
 		OutputChan: make(chan string, CONNCHANBUFSIZE),
 	}
@@ -61,15 +66,17 @@ func (conn *Conn) Close() error {
 		}()
 		close(conn.OutputChan)
 	}()
+	key := conn.LocalAddr().String() + ":" + conn.RemoteAddr().String()
+	ptcpServer.CloseConn(key)
 	return nil
 }
 
 func (conn *Conn) LocalAddr() net.Addr {
-	return nil
+	return conn.localAddress
 }
 
 func (conn *Conn) RemoteAddr() net.Addr {
-	return nil
+	return conn.remoteAddress
 }
 
 func (conn *Conn) SetDeadline(t time.Time) error {

@@ -35,7 +35,6 @@ func (h IPv4) String() string {
 	Dst: %s,
 	Opt: %s,
 }
-}
 `
 	return fmt.Sprintf(res, h.VerIHL>>4, h.VerIHL&0xf, h.Tos,
 		h.Len, h.Id, h.Offset, h.TTL,

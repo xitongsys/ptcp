@@ -1,6 +1,9 @@
 package header
 
 func BuildUdpPacket(ipHeader *IPv4, udpHeader *UDP, data []byte) []byte {
+	ipHeader.Len = uint16(20 + 8 + len(data))
+	udpHeader.Len = uint16(8 + len(data))
+	ipHeader.ResetChecksum()
 	bs := []byte{}
 	bs = append(bs, ipHeader.Marshal()...)
 	bs = append(bs, udpHeader.Marshal()...)
@@ -10,6 +13,8 @@ func BuildUdpPacket(ipHeader *IPv4, udpHeader *UDP, data []byte) []byte {
 } 
 
 func BuildTcpPacket(ipHeader *IPv4, tcpHeader *TCP, data []byte) []byte {
+	ipHeader.Len = uint16(20 + 20 + len(data))
+	ipHeader.ResetChecksum()
 	bs := []byte{}
 	bs = append(bs, ipHeader.Marshal()...)
 	bs = append(bs, tcpHeader.Marshal()...)
@@ -18,14 +23,14 @@ func BuildTcpPacket(ipHeader *IPv4, tcpHeader *TCP, data []byte) []byte {
 	return bs
 } 
 
-func BuildTcpHeader(src, dst string, data []byte) (*IPv4, *TCP) {
+func BuildTcpHeader(src, dst string) (*IPv4, *TCP) {
 	srcIp, srcPort := ParseAddr(src)
 	dstIp, dstPort := ParseAddr(dst)
 
 	ipv4Header := &IPv4{
 		VerIHL: 0x45,
 		Tos: 0,
-		Len: uint16(20 + 20 + len(data)),
+		Len: 0,
 		Id: 0,
 		Offset: 0,
 		TTL: 255,
@@ -50,14 +55,14 @@ func BuildTcpHeader(src, dst string, data []byte) (*IPv4, *TCP) {
 	return ipv4Header, tcpHeader
 }
 
-func BuildUdpHeader(src, dst string, data []byte) (*IPv4, *UDP) {
+func BuildUdpHeader(src, dst string) (*IPv4, *UDP) {
 	srcIp, srcPort := ParseAddr(src)
 	dstIp, dstPort := ParseAddr(dst)
 
 	ipv4Header := &IPv4{
 		VerIHL: 0x45,
 		Tos: 0,
-		Len: uint16(20 + 8 + len(data)),
+		Len: 0,
 		Id: 0,
 		Offset: 0,
 		TTL: 255,
@@ -71,7 +76,7 @@ func BuildUdpHeader(src, dst string, data []byte) (*IPv4, *UDP) {
 	udpHeader := &UDP{
 		SrcPort: uint16(srcPort),
 		DstPort: uint16(dstPort),
-		Len: uint16(8 + len(data)),
+		Len: 0,
 		Checksum: 0,
 	}
 	return ipv4Header, udpHeader
