@@ -43,6 +43,5 @@ func Dial(proto string, remoteAddr string) (net.Conn, error) {
 	if err != nil || n != len(packet) {
 		return nil, fmt.Errorf("packet loss (expect=%v, real=%v) or %v", len(packet), n, err)
 	}
-
 	return conn, nil
 }

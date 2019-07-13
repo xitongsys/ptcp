@@ -2,6 +2,7 @@ package ptcp
 
 import (
 	"net"
+	"log"
 
 	"github.com/xitongsys/ptcp/header"
 )
@@ -39,6 +40,7 @@ func (l *Listener) Accept() (net.Conn, error) {
 		if tcpHeader.Flags != 0x02 || len(data) != 0 {
 			continue
 		}
+		log.Println("1 done")
 		_, src, dst, _ := header.GetBase([]byte(packet))
 		seq, ack := 0, tcpHeader.Seq + 1
 		ipHeaderTo, tcpHeaderTo := header.BuildTcpHeader(dst, src)
@@ -48,9 +50,11 @@ func (l *Listener) Accept() (net.Conn, error) {
 
 		packet = <- l.InputChan
 		_, _, _, tcpHeader, data, _ = header.Get([]byte(packet))
+		log.Println("=======", tcpHeader.Seq, tcpHeader.Ack, tcpHeader.Flags, len(data), ack)
 		if tcpHeader.Flags != 0x10 || len(data) != 0 || tcpHeader.Seq != ack{
 			continue
 		}
+		log.Println("3 done")
 
 		conn := NewConn(dst, src)
 		ptcpServer.CreateConn(dst, src, conn)
