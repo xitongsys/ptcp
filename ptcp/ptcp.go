@@ -2,10 +2,13 @@ package ptcp
 
 import (
 	"sync"
+	"log"
 
 	"github.com/xitongsys/ptcp/raw"
 	"github.com/xitongsys/ptcp/header"
 )
+
+var BUFFERSIZE = 65535
 
 var ptcpServer *PTCP
 
@@ -70,7 +73,7 @@ func (p *PTCP) Start() {
 	go func(){
 		for {
 			data, err := p.raw.Read()
-			if err != nil && len(data) > 0 {
+			if err == nil && len(data) > 0 {
 				if proto, src, dst, err := header.GetBase(data); err == nil && proto == "tcp" {
 					key := dst + ":" + src
 					if value, ok := p.router.Load(key); ok {
@@ -80,7 +83,8 @@ func (p *PTCP) Start() {
 						}
 
 					}else if value, ok := p.routerListener.Load(dst); ok {
-						listener := value.(Listener)
+						log.Println("key======", key)
+						listener := value.(*Listener)
 						select {
 						case listener.InputChan <- string(data):
 						}

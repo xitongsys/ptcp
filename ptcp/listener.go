@@ -53,17 +53,6 @@ func (l *Listener) Accept() (net.Conn, error) {
 		}
 
 		conn := NewConn(dst, src)
-		go func(){
-			defer func(){
-				recover()
-			}()
-
-			for {
-				s := <- conn.OutputChan
-				tcpHeaderTo.Flags = 0x18
-				l.OutputChan <- string(header.BuildTcpPacket(ipHeaderTo, tcpHeaderTo, []byte(s)))
-			}
-		}()
 		ptcpServer.CreateConn(dst, src, conn)
 		return conn, nil
 	}

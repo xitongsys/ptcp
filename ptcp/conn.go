@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 	"net"
+
+	"github.com/xitongsys/ptcp/header"
 )
 
 var CONNCHANBUFSIZE = 1024
@@ -31,14 +33,14 @@ func (conn *Conn) Read(b []byte) (n int, err error) {
 	}()
 
 	s := <- conn.InputChan
-	ls, ln := len(s), len(b)
+	_,_,_,_,data,_ := header.Get([]byte(s))
+	ls, ln := len(data), len(b)
 	l := ls
 	if ln < ls {
 		l = ln
 	}
-	sb := []byte(s)
 	for i := 0; i < l; i++ {
-		b[i] = sb[i]
+		b[i] = data[i]
 	}
 	return ls, nil	
 }
@@ -49,7 +51,9 @@ func (conn *Conn) Write(b []byte) (n int, err error) {
 		n, err = -1, fmt.Errorf("closed")
 	}()
 
-	conn.OutputChan <- string(b)
+	ipHeader, tcpHeader := header.BuildTcpHeader(conn.LocalAddr().String(), conn.RemoteAddr().String())
+	packet := header.BuildTcpPacket(ipHeader, tcpHeader, b)
+	conn.OutputChan <- string(packet)
 	return len(b), nil
 }
 

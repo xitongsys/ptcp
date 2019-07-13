@@ -31,9 +31,9 @@ func GetBase(data []byte) (proto string, src string, dst string, err error) {
 
 }
 
-func Get(data []byte) (proto string, iph IPv4, udph UDP, tcph TCP, packetData []byte, err error) {
+func Get(data []byte) (proto string, iph *IPv4, udph *UDP, tcph *TCP, packetData []byte, err error) {
 	proto = ""
-	iph, udph, tcph = IPv4{}, UDP{}, TCP{}
+	iph, udph, tcph = &IPv4{}, &UDP{}, &TCP{}
 	if len(data) < 20 {
 		err = fmt.Errorf("Packet too short")
 		return
