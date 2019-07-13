@@ -15,13 +15,14 @@ func Dial(proto string, remoteAddr string) (net.Conn, error) {
 
 	conn := NewConn(localAddr.String(), remoteAddr)
 	ptcpServer.CreateConn(localAddr.String(), remoteAddr, conn)
+
 	ipHeader, tcpHeader := header.BuildTcpHeader(localAddr.String(), remoteAddr)
 	tcpHeader.Seq = 0
 	tcpHeader.Flags = 0x02;
 	packet := header.BuildTcpPacket(ipHeader, tcpHeader, []byte{})
-	n, err := conn.Write(packet)
+	n, err := conn.WriteWithHeader(packet)
 	if err != nil || n != len(packet) {
-		return nil, fmt.Errorf("packet loss or %v", err)
+		return nil, fmt.Errorf("packet loss (expect=%v, real=%v) or %v", len(packet), n, err)
 	}
 
 	buf := make([]byte, BUFFERSIZE)
@@ -37,9 +38,9 @@ func Dial(proto string, remoteAddr string) (net.Conn, error) {
 	tcpHeader.Ack = ack
 	tcpHeader.Flags = 0x10
 	packet = header.BuildTcpPacket(ipHeader, tcpHeader, []byte{})
-	n, err = conn.Write(packet)
+	n, err = conn.WriteWithHeader(packet)
 	if err != nil || n != len(packet) {
-		return nil, fmt.Errorf("packet loss or %v", err)
+		return nil, fmt.Errorf("packet loss (expect=%v, real=%v) or %v", len(packet), n, err)
 	}
 
 	return conn, nil

@@ -57,6 +57,35 @@ func (conn *Conn) Write(b []byte) (n int, err error) {
 	return len(b), nil
 }
 
+func (conn *Conn) ReadWithHeader(b []byte) (n int, err error) {
+	defer func(){
+		recover()
+		n, err = -1, fmt.Errorf("closed")
+	}()
+
+	s := <- conn.InputChan
+	data := []byte(s)
+	ls, ln := len(data), len(b)
+	l := ls
+	if ln < ls {
+		l = ln
+	}
+	for i := 0; i < l; i++ {
+		b[i] = data[i]
+	}
+	return ls, nil	
+}
+
+
+func (conn *Conn) WriteWithHeader(b []byte) (n int, err error) {
+	defer func(){
+		recover()
+		n, err = -1, fmt.Errorf("closed")
+	}()
+	conn.OutputChan <- string(b)
+	return len(b), nil
+}
+
 func (conn *Conn) Close() error { 
 	go func(){
 		defer func(){
