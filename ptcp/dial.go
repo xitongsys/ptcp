@@ -20,6 +20,7 @@ func Dial(proto string, remoteAddr string) (net.Conn, error) {
 	tcpHeader.Seq = 0
 	tcpHeader.Flags = 0x02;
 	packet := header.BuildTcpPacket(ipHeader, tcpHeader, []byte{})
+
 	n, err := conn.WriteWithHeader(packet)
 	if err != nil || n != len(packet) {
 		return nil, fmt.Errorf("packet loss (expect=%v, real=%v) or %v", len(packet), n, err)

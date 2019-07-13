@@ -28,10 +28,10 @@ func NewConn(localAddr string, remoteAddr string) *Conn {
 
 func (conn *Conn) Read(b []byte) (n int, err error) {
 	defer func(){
-		recover()
-		n, err = -1, fmt.Errorf("closed")
+		if r := recover(); r != nil {
+			n, err = -1, fmt.Errorf("closed: %v", r)
+		}
 	}()
-
 	s := <- conn.InputChan
 	_,_,_,_,data,_ := header.Get([]byte(s))
 	ls, ln := len(data), len(b)
@@ -47,10 +47,10 @@ func (conn *Conn) Read(b []byte) (n int, err error) {
 
 func (conn *Conn) Write(b []byte) (n int, err error) {
 	defer func(){
-		recover()
-		n, err = -1, fmt.Errorf("closed")
+		if r := recover(); r != nil {
+			n, err = -1, fmt.Errorf("closed: %v", r)
+		}
 	}()
-
 	ipHeader, tcpHeader := header.BuildTcpHeader(conn.LocalAddr().String(), conn.RemoteAddr().String())
 	packet := header.BuildTcpPacket(ipHeader, tcpHeader, b)
 	conn.OutputChan <- string(packet)
@@ -59,10 +59,10 @@ func (conn *Conn) Write(b []byte) (n int, err error) {
 
 func (conn *Conn) ReadWithHeader(b []byte) (n int, err error) {
 	defer func(){
-		recover()
-		n, err = -1, fmt.Errorf("closed")
+		if r := recover(); r != nil {
+			n, err = -1, fmt.Errorf("closed: %v", r)
+		}
 	}()
-
 	s := <- conn.InputChan
 	data := []byte(s)
 	ls, ln := len(data), len(b)
@@ -76,11 +76,11 @@ func (conn *Conn) ReadWithHeader(b []byte) (n int, err error) {
 	return ls, nil	
 }
 
-
 func (conn *Conn) WriteWithHeader(b []byte) (n int, err error) {
 	defer func(){
-		recover()
-		n, err = -1, fmt.Errorf("closed")
+		if r := recover(); r != nil {
+			n, err = -1, fmt.Errorf("closed: %v", r)
+		}
 	}()
 	conn.OutputChan <- string(b)
 	return len(b), nil

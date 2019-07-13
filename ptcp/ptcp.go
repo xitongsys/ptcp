@@ -77,7 +77,7 @@ func (p *PTCP) Start() {
 				if proto, src, dst, err := header.GetBase(data); err == nil && proto == "tcp" {
 					key := dst + ":" + src
 					if value, ok := p.router.Load(key); ok {
-						conn := value.(Conn)
+						conn := value.(*Conn)
 						select {
 						case conn.InputChan <- string(data):
 						}
