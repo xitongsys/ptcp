@@ -35,7 +35,7 @@ func NewListener(addr string) (*Listener, error) {
 func (l *Listener) Accept() (net.Conn, error) {
 	for {
 		packet := <- l.InputChan
-		_, ipHeader, _, tcpHeader, data, _ := header.Get([]byte(packet))
+		_, _, _, tcpHeader, data, _ := header.Get([]byte(packet))
 		if tcpHeader.Flags != 0x02 || len(data) != 0 {
 			continue
 		}
@@ -47,12 +47,11 @@ func (l *Listener) Accept() (net.Conn, error) {
 		l.OutputChan <- string(header.BuildTcpPacket(ipHeaderTo, tcpHeaderTo, []byte{}))
 
 		packet = <- l.InputChan
-		_, ipHeader, _, tcpHeader, data, _ = header.Get([]byte(packet))
+		_, _, _, tcpHeader, data, _ = header.Get([]byte(packet))
 		if tcpHeader.Flags != 0x10 || len(data) != 0 || tcpHeader.Seq != ack{
 			continue
 		}
 
-		key := dst + ":" + src
 		conn := NewConn(dst, src)
 		go func(){
 			defer func(){

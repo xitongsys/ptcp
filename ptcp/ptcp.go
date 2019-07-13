@@ -1,8 +1,6 @@
 package ptcp
 
 import (
-	"fmt"
-	"net"
 	"sync"
 
 	"github.com/xitongsys/ptcp/raw"
@@ -16,9 +14,7 @@ func init() {
 	if ptcpServer, err = NewPTCP(); err != nil {
 		panic(err)
 	}
-	go func() {
-		ptcpServer.Start()
-	}()
+	ptcpServer.Start()
 }
 
 type PTCP struct {
@@ -92,6 +88,5 @@ func (p *PTCP) Start() {
 				}
 			}
 		}
-
 	}()
 }
