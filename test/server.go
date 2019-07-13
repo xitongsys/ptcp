@@ -7,7 +7,7 @@ import (
 )
 
 func main(){
-	ln, err := ptcp.Listen("ptcp", "127.0.0.1:11111")
+	ln, err := ptcp.Listen("ptcp", "127.0.0.1:22222")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -20,6 +20,8 @@ func main(){
 	}
 
 	buf := make([]byte, 100)
-	n, err := conn.Read(buf)
-	fmt.Println(n, err, buf)
+	for {
+		n, err := conn.Read(buf)
+		fmt.Println(n, err, string(buf[:n]))
+	}
 }
