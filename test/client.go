@@ -7,15 +7,17 @@ import (
 )
 
 func main(){
-	conn, err := ptcp.Dial("ptcp", "127.0.0.1:22222")
+	conn, err := ptcp.Dial("ptcp", "47.240.40.78:12222")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	n, err := conn.Write([]byte("hehe"))
-	if err != nil {
-		fmt.Println(err)
+	for {
+		n, err := conn.Write([]byte("hehe"))
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(n, err)
 	}
-	fmt.Println(n, err)
 }

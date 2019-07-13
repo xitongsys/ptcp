@@ -27,18 +27,26 @@ func Dial(proto string, remoteAddr string) (net.Conn, error) {
 	}
 
 	buf := make([]byte, BUFFERSIZE)
-	n, err = conn.Read(buf)
+	n, err = conn.ReadWithHeader(buf)
 	if err != nil {
 		return nil, err
 	}
 	buf = buf[:n]
 	_,_,_,tcpHeader,_,_ = header.Get(buf)
+
+	fmt.Println("=====tcpheader", tcpHeader)
+
 	seq, ack := 1, tcpHeader.Seq + 1
 	ipHeader, tcpHeader = header.BuildTcpHeader(localAddr.String(), remoteAddr)
 	tcpHeader.Seq = uint32(seq)
 	tcpHeader.Ack = ack
 	tcpHeader.Flags = 0x10
 	packet = header.BuildTcpPacket(ipHeader, tcpHeader, []byte{})
+
+	_, src, dst, _ := header.GetBase(buf)
+	fmt.Println("=======", len(packet), seq, ack, src, dst)
+
+
 	n, err = conn.WriteWithHeader(packet)
 	if err != nil || n != len(packet) {
 		return nil, fmt.Errorf("packet loss (expect=%v, real=%v) or %v", len(packet), n, err)
