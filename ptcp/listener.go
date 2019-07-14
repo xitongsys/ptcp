@@ -23,22 +23,13 @@ type Listener struct {
 	Address string
 	InputChan chan string
 	OutputChan chan string
-	listener net.Listener
 }
 
 func NewListener(addr string) (*Listener, error) {
-	/*
-	ln, err := net.Listen("tcp", addr)
-	if err != nil {
-		return nil, err
-	}
-	*/
-
 	return &Listener{
 		Address: addr,
 		InputChan: make(chan string, LISTENERBUFSIZE),
 		OutputChan: make(chan string, LISTENERBUFSIZE),
-		listener: nil,
 	}, nil
 }
 
@@ -85,7 +76,6 @@ func (l *Listener) Close() (error) {
 		}()
 		close(l.OutputChan)
 	}()
-	l.listener.Close()
 	ptcpServer.CloseListener(l.Address)
 	return nil
 }
