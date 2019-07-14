@@ -6,6 +6,7 @@ import (
 	"syscall"
 
 	"github.com/xitongsys/ptcp/header"
+	"github.com/mdlayher/ethernet"
 )
 
 var RAWBUFSIZE = 65535
@@ -23,7 +24,7 @@ func NewRaw() (*Raw, error){
 		return nil, err
 	}
 
-	fdR, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_RAW, syscall.IPPROTO_TCP)
+	fdR, err := syscall.Socket(syscall.AF_PACKET, syscall.SOCK_RAW, syscall.ETH_P_ALL)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +41,9 @@ func NewRaw() (*Raw, error){
 func (r *Raw) Read() ([]byte, error) {
 	n, err := r.readFile.Read(r.buf)
 	if err == nil {
-		return r.buf[:n], nil
+		eth := &ethernet.Frame{}
+		eth.UnmarshalBinary(r.buf[:n])
+		return eth.Payload, err
 	}
 	return nil, err
 }
