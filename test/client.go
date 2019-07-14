@@ -19,5 +19,6 @@ func main(){
 			fmt.Println(err)
 		}
 		fmt.Println(n, err)
+		fmt.Scanf("%d", &n)
 	}
 }

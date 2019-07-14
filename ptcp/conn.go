@@ -64,6 +64,7 @@ func (conn *Conn) Write(b []byte) (n int, err error) {
 	tcpHeader.Seq = conn.seq + 1
 	conn.seq += 1
 	tcpHeader.Ack = conn.ack
+	tcpHeader.Flags = 0x18
 
 	packet := header.BuildTcpPacket(ipHeader, tcpHeader, b)
 	conn.OutputChan <- string(packet)
