@@ -48,7 +48,7 @@ func Dial(proto string, remoteAddr string) (net.Conn, error) {
 	for !timeOut {
 		if n, err := conn.ReadWithHeader(buf); n>0 && err==nil{
 			_,_,_,tcpHeader,_,_ = header.Get(buf[:n])
-			if tcpHeader.Flags == header.SYNACK && tcpHeader.Ack == 1 {
+			if tcpHeader.Flags == (header.SYN | header.ACK) && tcpHeader.Ack == 1 {
 				close(done)
 				break
 			}

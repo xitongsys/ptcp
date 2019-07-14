@@ -67,7 +67,7 @@ func (l *Listener) Accept() (net.Conn, error) {
 			log.Println("======handshake1", src, dst,seq,ack)
 			ipHeaderTo, tcpHeaderTo := header.BuildTcpHeader(dst, src)
 			tcpHeaderTo.Seq, tcpHeaderTo.Ack = uint32(seq), uint32(ack)
-			tcpHeaderTo.Flags = header.SYNACK
+			tcpHeaderTo.Flags = (header.SYN | header.ACK)
 			response := string(header.BuildTcpPacket(ipHeaderTo, tcpHeaderTo, []byte{}))
 			l.requestCache.Set(src, response, cache.DefaultExpiration)
 			l.OutputChan <- response
