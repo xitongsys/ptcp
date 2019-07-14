@@ -7,18 +7,20 @@ import (
 
 	"github.com/xitongsys/ptcp/header"
 	"github.com/mdlayher/ethernet"
+	"github.com/mdlayher/raw"
 )
 
 var RAWBUFSIZE = 65535
 
 type Raw struct {
+	interfaceName string
 	fdWrite int
 	fdRead int
 	readFile *os.File
 	buf []byte
 }
 
-func NewRaw() (*Raw, error){
+func NewRaw(interfaceName string) (*Raw, error){
 	fdW, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_RAW, syscall.IPPROTO_RAW)
 	if err != nil {
 		return nil, err
@@ -39,7 +41,9 @@ func NewRaw() (*Raw, error){
 }
 
 func (r *Raw) Read() ([]byte, error) {
+	fmt.Println("======read start======")
 	n, err := r.readFile.Read(r.buf)
+	fmt.Println("===read ", n, err)
 	if err == nil {
 		eth := &ethernet.Frame{}
 		eth.UnmarshalBinary(r.buf[:n])
