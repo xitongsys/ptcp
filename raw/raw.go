@@ -1,22 +1,19 @@
 package raw
 
 import (
-	"fmt"
-	"os"
 	"syscall"
 
 	"github.com/xitongsys/ptcp/header"
+	"github.com/xitongsys/ptcp/util"
 	"github.com/mdlayher/ethernet"
-	"github.com/mdlayher/raw"
 )
 
 var RAWBUFSIZE = 65535
 
 type Raw struct {
-	interfaceName string
+	ifName string
 	fdWrite int
 	fdRead int
-	readFile *os.File
 	buf []byte
 }
 
@@ -26,24 +23,35 @@ func NewRaw(interfaceName string) (*Raw, error){
 		return nil, err
 	}
 
-	fdR, err := syscall.Socket(syscall.AF_PACKET, syscall.SOCK_RAW, syscall.ETH_P_ALL)
+	fdR, err := syscall.Socket(syscall.AF_PACKET, syscall.SOCK_RAW, int(util.Htons(syscall.ETH_P_ALL)))
 	if err != nil {
 		return nil, err
 	}
-	readF := os.NewFile(uintptr(fdR), fmt.Sprintf("fd %d", fdR))
+
+	/*
+	iface, err := net.InterfaceByName(interfaceName)
+	if err != nil {
+		return nil, err
+	}
+	*/
+
+	if err = syscall.BindToDevice(fdR, interfaceName); err!=nil{
+		return nil, err
+	}
+	if err = syscall.SetsockoptInt(fdR, syscall.SOL_SOCKET, syscall.SO_REUSEADDR, 1); err!=nil{
+		return nil, err
+	}
 
 	return &Raw{
+		ifName: interfaceName,
 		fdWrite: fdW, 
 		fdRead: fdR,
-		readFile: readF,
 		buf: make([]byte, RAWBUFSIZE),
 	}, nil
 }
 
 func (r *Raw) Read() ([]byte, error) {
-	fmt.Println("======read start======")
-	n, err := r.readFile.Read(r.buf)
-	fmt.Println("===read ", n, err)
+	n, _, err := syscall.Recvfrom(r.fdRead, r.buf, 0)
 	if err == nil {
 		eth := &ethernet.Frame{}
 		eth.UnmarshalBinary(r.buf[:n])

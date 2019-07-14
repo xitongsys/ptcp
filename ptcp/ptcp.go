@@ -12,9 +12,9 @@ var BUFFERSIZE = 65535
 
 var ptcpServer *PTCP
 
-func init() {
+func Init(interfaceName string) {
 	var err error 
-	if ptcpServer, err = NewPTCP(); err != nil {
+	if ptcpServer, err = NewPTCP(interfaceName); err != nil {
 		panic(err)
 	}
 	ptcpServer.Start()
@@ -28,8 +28,8 @@ type PTCP struct {
 	router sync.Map
 }
 
-func NewPTCP() (*PTCP, error) {
-	r, err := raw.NewRaw()
+func NewPTCP(interfaceName string) (*PTCP, error) {
+	r, err := raw.NewRaw(interfaceName)
 	if err != nil {
 		return nil, err
 	}
