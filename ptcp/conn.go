@@ -10,19 +10,28 @@ import (
 
 var CONNCHANBUFSIZE = 1024
 
+const (
+	CONNECTING = iota
+	CONNECTED 
+	CLOSING
+	CLOSED 
+)
+
 type Conn struct {
 	localAddress *Addr
 	remoteAddress *Addr
 	InputChan chan string
 	OutputChan chan string
+	State int
 }
 
-func NewConn(localAddr string, remoteAddr string) *Conn {
+func NewConn(localAddr string, remoteAddr string, state int) *Conn {
 	return &Conn{
 		localAddress: NewAddr(localAddr),
 		remoteAddress: NewAddr(remoteAddr),
 		InputChan: make(chan string, CONNCHANBUFSIZE),
 		OutputChan: make(chan string, CONNCHANBUFSIZE),
+		State: state,
 	}
 }
 

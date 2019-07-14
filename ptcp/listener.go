@@ -75,7 +75,7 @@ func (l *Listener) Accept() (net.Conn, error) {
 		}else if tcpHeader.Flags == header.ACK && len(data) == 0 {
 			if _, ok := l.requestCache.Get(src); ok {
 				l.requestCache.Delete(src)
-				conn := NewConn(dst, src)
+				conn := NewConn(dst, src, CONNECTED)
 				ptcpServer.CreateConn(dst, src, conn)
 				return conn, nil
 			}

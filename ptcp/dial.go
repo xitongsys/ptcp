@@ -19,7 +19,7 @@ func Dial(proto string, remoteAddr string) (net.Conn, error) {
 		return nil, err
 	}
 
-	conn := NewConn(localAddr.String(), remoteAddr)
+	conn := NewConn(localAddr.String(), remoteAddr, CONNECTING)
 	ptcpServer.CreateConn(localAddr.String(), remoteAddr, conn)
 
 	ipHeader, tcpHeader := header.BuildTcpHeader(localAddr.String(), remoteAddr)
@@ -77,5 +77,6 @@ func Dial(proto string, remoteAddr string) (net.Conn, error) {
 	if err != nil || n != len(packet) {
 		return nil, fmt.Errorf("packet loss (expect=%v, real=%v) or %v", len(packet), n, err)
 	}
+	conn.State = CONNECTED
 	return conn, nil
 }
