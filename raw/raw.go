@@ -52,6 +52,7 @@ func NewRaw(interfaceName string) (*Raw, error){
 
 func (r *Raw) Read() ([]byte, error) {
 	n, _, err := syscall.Recvfrom(r.fdRead, r.buf, 0)
+	
 	if err == nil {
 		eth := &ethernet.Frame{}
 		eth.UnmarshalBinary(r.buf[:n])
