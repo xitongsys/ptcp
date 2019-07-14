@@ -42,6 +42,10 @@ func (conn *Conn) Read(b []byte) (n int, err error) {
 			n, err = -1, fmt.Errorf("closed: %v", r)
 		}
 	}()
+	if conn.State != CONNECTED {
+		return -1, fmt.Errorf("closed")
+	}
+
 	s := <- conn.InputChan
 	_,_,_,_,data,_ := header.Get([]byte(s))
 	ls, ln := len(data), len(b)
@@ -62,6 +66,10 @@ func (conn *Conn) Write(b []byte) (n int, err error) {
 			n, err = -1, fmt.Errorf("closed: %v", r)
 		}
 	}()
+	if conn.State != CONNECTED {
+		return -1, fmt.Errorf("closed")
+	}
+
 	ipHeader, tcpHeader := header.BuildTcpHeader(conn.LocalAddr().String(), conn.RemoteAddr().String())
 	tcpHeader.Flags = 0x18
 	tcpHeader.Ack = 2
@@ -79,6 +87,9 @@ func (conn *Conn) ReadWithHeader(b []byte) (n int, err error) {
 			n, err = -1, fmt.Errorf("closed: %v", r)
 		}
 	}()
+	if conn.State != CONNECTED {
+		return -1, fmt.Errorf("closed")
+	}
 
 	select {
 	case s := <- conn.InputChan:
@@ -104,6 +115,9 @@ func (conn *Conn) WriteWithHeader(b []byte) (n int, err error) {
 			n, err = -1, fmt.Errorf("closed: %v", r)
 		}
 	}()
+	if conn.State != CONNECTED {
+		return -1, fmt.Errorf("closed")
+	}
 
 	select {
 	case conn.OutputChan <- string(b):
