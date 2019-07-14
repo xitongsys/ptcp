@@ -80,7 +80,7 @@ func (p *PTCP) Start() {
 						conn := value.(*Conn)
 						select {
 						case conn.InputChan <- string(data):
-						default:break
+						default:
 						}
 
 					}else if value, ok := p.routerListener.Load(dst); ok {
@@ -88,7 +88,7 @@ func (p *PTCP) Start() {
 						listener := value.(*Listener)
 						select {
 						case listener.InputChan <- string(data):
-						default:break
+						default:
 						}
 					}
 				}
