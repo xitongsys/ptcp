@@ -3,6 +3,7 @@ package ptcp
 import (
 	"net"
 	"time"
+	"log"
 
 	"github.com/xitongsys/ptcp/header"
 	"github.com/patrickmn/go-cache"
@@ -46,6 +47,7 @@ func (l *Listener) Accept() (net.Conn, error) {
 		_, src, dst, _ := header.GetBase([]byte(packet))
 		if tcpHeader.Flags == header.SYN && len(data) == 0 {
 			seq, ack := 0, tcpHeader.Seq + 1
+			log.Println("======handshake1", src, dst,seq,ack)
 			ipHeaderTo, tcpHeaderTo := header.BuildTcpHeader(dst, src)
 			tcpHeaderTo.Seq, tcpHeaderTo.Ack = uint32(seq), uint32(ack)
 			tcpHeaderTo.Flags = header.SYNACK
@@ -54,6 +56,7 @@ func (l *Listener) Accept() (net.Conn, error) {
 
 		}else if tcpHeader.Flags == header.ACK && len(data) == 0 {
 			if acki, ok := l.requestCache.Get(src); ok && acki.(uint32) == tcpHeader.Seq {
+				log.Println("======handshake3", src, dst, acki)
 				l.requestCache.Delete(src)
 				conn := NewConn(dst, src)
 				ptcpServer.CreateConn(dst, src, conn)
