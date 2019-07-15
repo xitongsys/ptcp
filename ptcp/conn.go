@@ -55,6 +55,8 @@ func (conn *Conn) Write(b []byte) (n int, err error) {
 	}()
 	ipHeader, tcpHeader := header.BuildTcpHeader(conn.LocalAddr().String(), conn.RemoteAddr().String())
 	tcpHeader.Flags = 0x18
+	tcpHeader.Ack = 2
+	tcpHeader.Seq = 2
 
 	packet := header.BuildTcpPacket(ipHeader, tcpHeader, b)
 	conn.OutputChan <- string(packet)
