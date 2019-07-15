@@ -10,12 +10,6 @@ import (
 
 var LISTENERBUFSIZE = 1024
 
-const (
-	SYN = 0x02
-	ACK = 0x10
-	SYNACK = 0x12
-)
-
 func Listen(proto, addr string) (net.Listener, error) {
 	if listener, err := NewListener(addr); err == nil {
 		ptcpServer.CreateListener(addr, listener)
@@ -50,15 +44,15 @@ func (l *Listener) Accept() (net.Conn, error) {
 		packet := <- l.InputChan
 		_, _, _, tcpHeader, data, _ := header.Get([]byte(packet))
 		_, src, dst, _ := header.GetBase([]byte(packet))
-		if tcpHeader.Flags == SYN && len(data) == 0 {
+		if tcpHeader.Flags == header.SYN && len(data) == 0 {
 			seq, ack := 0, tcpHeader.Seq + 1
 			ipHeaderTo, tcpHeaderTo := header.BuildTcpHeader(dst, src)
 			tcpHeaderTo.Seq, tcpHeaderTo.Ack = uint32(seq), uint32(ack)
-			tcpHeaderTo.Flags = SYNACK
+			tcpHeaderTo.Flags = header.SYNACK
 			l.requestCache.Set(src, ack, cache.DefaultExpiration)
 			l.OutputChan <- string(header.BuildTcpPacket(ipHeaderTo, tcpHeaderTo, []byte{}))
 
-		}else if tcpHeader.Flags == ACK && len(data) == 0 {
+		}else if tcpHeader.Flags == header.ACK && len(data) == 0 {
 			if acki, ok := l.requestCache.Get(src); ok && acki.(uint32) == tcpHeader.Seq {
 				l.requestCache.Delete(src)
 				conn := NewConn(dst, src)

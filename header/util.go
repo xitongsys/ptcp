@@ -7,6 +7,12 @@ import (
 )
 
 const (
+	SYN = 0x02
+	ACK = 0x10
+	SYNACK = 0x12
+)
+
+const (
 	TCPID = 6
 	UDPID = 17
 )
