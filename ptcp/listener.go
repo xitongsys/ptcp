@@ -2,12 +2,19 @@ package ptcp
 
 import (
 	"net"
-	"log"
+	"time"
 
 	"github.com/xitongsys/ptcp/header"
+	"github.com/patrickmn/go-cache"
 )
 
 var LISTENERBUFSIZE = 1024
+
+const (
+	SYN = 0x02
+	ACK = 0x10
+	SYNACK = 0x12
+)
 
 func Listen(proto, addr string) (net.Listener, error) {
 	if listener, err := NewListener(addr); err == nil {
@@ -23,6 +30,8 @@ type Listener struct {
 	Address string
 	InputChan chan string
 	OutputChan chan string
+
+	requestCache *cache.Cache
 }
 
 func NewListener(addr string) (*Listener, error) {
@@ -30,6 +39,9 @@ func NewListener(addr string) (*Listener, error) {
 		Address: addr,
 		InputChan: make(chan string, LISTENERBUFSIZE),
 		OutputChan: make(chan string, LISTENERBUFSIZE),
+
+		requestCache: cache.New(30*time.Second, 10*time.Minute),
+
 	}, nil
 }
 
@@ -37,28 +49,23 @@ func (l *Listener) Accept() (net.Conn, error) {
 	for {
 		packet := <- l.InputChan
 		_, _, _, tcpHeader, data, _ := header.Get([]byte(packet))
-		if tcpHeader.Flags != 0x02 || len(data) != 0 {
-			continue
-		}
-		log.Println("1 done")
 		_, src, dst, _ := header.GetBase([]byte(packet))
-		seq, ack := 0, tcpHeader.Seq + 1
-		ipHeaderTo, tcpHeaderTo := header.BuildTcpHeader(dst, src)
-		tcpHeaderTo.Seq, tcpHeaderTo.Ack = uint32(seq), uint32(ack)
-		tcpHeaderTo.Flags = 0x12
-		l.OutputChan <- string(header.BuildTcpPacket(ipHeaderTo, tcpHeaderTo, []byte{}))
+		if tcpHeader.Flags == SYN && len(data) == 0 {
+			seq, ack := 0, tcpHeader.Seq + 1
+			ipHeaderTo, tcpHeaderTo := header.BuildTcpHeader(dst, src)
+			tcpHeaderTo.Seq, tcpHeaderTo.Ack = uint32(seq), uint32(ack)
+			tcpHeaderTo.Flags = SYNACK
+			l.requestCache.Set(src, ack, cache.DefaultExpiration)
+			l.OutputChan <- string(header.BuildTcpPacket(ipHeaderTo, tcpHeaderTo, []byte{}))
 
-		packet = <- l.InputChan
-		_, _, _, tcpHeader, data, _ = header.Get([]byte(packet))
-		log.Println("=======", tcpHeader.Seq, tcpHeader.Ack, tcpHeader.Flags, len(data), ack)
-		if tcpHeader.Flags != 0x10 || len(data) != 0 || tcpHeader.Seq != ack{
-			continue
+		}else if tcpHeader.Flags == ACK && len(data) == 0 {
+			if acki, ok := l.requestCache.Get(src); ok && acki.(uint32) == tcpHeader.Seq {
+				l.requestCache.Delete(src)
+				conn := NewConn(dst, src)
+				ptcpServer.CreateConn(dst, src, conn)
+				return conn, nil
+			}
 		}
-		log.Println("3 done")
-
-		conn := NewConn(dst, src)
-		ptcpServer.CreateConn(dst, src, conn)
-		return conn, nil
 	}
 }
 
