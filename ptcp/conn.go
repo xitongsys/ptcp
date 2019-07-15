@@ -13,8 +13,6 @@ var CONNCHANBUFSIZE = 1024
 type Conn struct {
 	localAddress *Addr
 	remoteAddress *Addr
-	seq uint32
-	ack uint32
 	InputChan chan string
 	OutputChan chan string
 }
@@ -23,13 +21,12 @@ func NewConn(localAddr string, remoteAddr string) *Conn {
 	return &Conn{
 		localAddress: NewAddr(localAddr),
 		remoteAddress: NewAddr(remoteAddr),
-		seq: 0,
-		ack: 0,
 		InputChan: make(chan string, CONNCHANBUFSIZE),
 		OutputChan: make(chan string, CONNCHANBUFSIZE),
 	}
 }
 
+//Block
 func (conn *Conn) Read(b []byte) (n int, err error) {
 	defer func(){
 		if r := recover(); r != nil {
@@ -37,12 +34,7 @@ func (conn *Conn) Read(b []byte) (n int, err error) {
 		}
 	}()
 	s := <- conn.InputChan
-	_,_,_,tcpHeader,data,_ := header.Get([]byte(s))
-	seq := tcpHeader.Seq
-	if seq + 1 >= conn.ack {
-		conn.ack = seq + 1
-	}
-
+	data := []byte(s)
 	ls, ln := len(data), len(b)
 	l := ls
 	if ln < ls {
@@ -54,6 +46,7 @@ func (conn *Conn) Read(b []byte) (n int, err error) {
 	return ls, nil	
 }
 
+//Block
 func (conn *Conn) Write(b []byte) (n int, err error) {
 	defer func(){
 		if r := recover(); r != nil {
@@ -61,9 +54,6 @@ func (conn *Conn) Write(b []byte) (n int, err error) {
 		}
 	}()
 	ipHeader, tcpHeader := header.BuildTcpHeader(conn.LocalAddr().String(), conn.RemoteAddr().String())
-	tcpHeader.Seq = conn.seq + 1
-	conn.seq += 1
-	tcpHeader.Ack = conn.ack
 	tcpHeader.Flags = 0x18
 
 	packet := header.BuildTcpPacket(ipHeader, tcpHeader, b)
@@ -71,39 +61,45 @@ func (conn *Conn) Write(b []byte) (n int, err error) {
 	return len(b), nil
 }
 
+//NoBlock
 func (conn *Conn) ReadWithHeader(b []byte) (n int, err error) {
 	defer func(){
 		if r := recover(); r != nil {
 			n, err = -1, fmt.Errorf("closed: %v", r)
 		}
 	}()
-	s := <- conn.InputChan
-	data := []byte(s)
-	_,_,_,tcpHeader,_,_ := header.Get(data)
-	seq := tcpHeader.Seq 
-	if seq + 1 > conn.ack {
-		conn.ack = seq
-	}
 
-	ls, ln := len(data), len(b)
-	l := ls
-	if ln < ls {
-		l = ln
+	select {
+	case s := <- conn.InputChan:
+		data := []byte(s)
+		ls, ln := len(data), len(b)
+		l := ls
+		if ln < ls {
+			l = ln
+		}
+		for i := 0; i < l; i++ {
+			b[i] = data[i]
+		}
+		return ls, nil
+	default:
+		return 0, fmt.Errorf("failed")
 	}
-	for i := 0; i < l; i++ {
-		b[i] = data[i]
-	}
-	return ls, nil	
 }
 
+//NoBlock
 func (conn *Conn) WriteWithHeader(b []byte) (n int, err error) {
 	defer func(){
 		if r := recover(); r != nil {
 			n, err = -1, fmt.Errorf("closed: %v", r)
 		}
 	}()
-	conn.OutputChan <- string(b)
-	return len(b), nil
+
+	select {
+	case conn.OutputChan <- string(b):
+		return len(b), nil
+	default:
+		return 0, fmt.Errorf("failed")
+	}
 }
 
 func (conn *Conn) Close() error { 

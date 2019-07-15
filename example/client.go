@@ -14,6 +14,8 @@ func main(){
 		return
 	}
 
+	fmt.Println("connected.")
+
 	for {
 		n, err := conn.Write([]byte("hehe"))
 		if err != nil {

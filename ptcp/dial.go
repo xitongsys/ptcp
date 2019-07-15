@@ -30,6 +30,7 @@ func Dial(proto string, remoteAddr string) (net.Conn, error) {
 	done := make(chan int)
 	go func() {
 		for i:=0; i<RETRYTIME; i++ {
+			fmt.Println("====write retry")
 			select {
 			case <- done:
 				return
@@ -41,23 +42,22 @@ func Dial(proto string, remoteAddr string) (net.Conn, error) {
 		}
 	}()
 
-	timeOut := time.After(time.Millisecond * RETRYINTERVAL * RETRYTIME)
+	after := time.After(time.Millisecond * RETRYINTERVAL * RETRYTIME)
 	buf := make([]byte, BUFFERSIZE)
-	for {
-		n, err := conn.ReadWithHeader(buf)
-		if err != nil {
-			return nil, err
-		}
-		_,_,_,tcpHeader,_,_ = header.Get(buf[:n])
-		if tcpHeader.Flags == header.SYNACK && tcpHeader.Ack == 1 {
-			close(done)
-			break
-		}
+	timeOut := false
+	for !timeOut {
+		if n, err := conn.ReadWithHeader(buf); n>0 && err==nil{
+			_,_,_,tcpHeader,_,_ = header.Get(buf[:n])
+			if tcpHeader.Flags == header.SYNACK && tcpHeader.Ack == 1 {
+				close(done)
+				break
+			}
+		}	
 
 		select {
-		case <- timeOut:
-			err = fmt.Errorf("Timeout")
-			break
+		case <- after:
+			err = fmt.Errorf("timeout")
+			timeOut = true
 		default:
 		}
 	}
