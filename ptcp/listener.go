@@ -30,27 +30,31 @@ type Listener struct {
 }
 
 func NewListener(addr string) (*Listener, error) {
-	return &Listener{
+	listener := &Listener{
 		Address: addr,
 		InputChan: make(chan string, LISTENERBUFSIZE),
 		OutputChan: make(chan string, LISTENERBUFSIZE),
 
 		requestCache: cache.New(10*time.Second, 1*time.Minute),
 
-	}, nil
+	}
+	listener.sendResponse()
+	return listener, nil
 }
 
 func (l *Listener) sendResponse() {
-	for {
-		items := l.requestCache.Items()
-		for src := range items {
-			if respi, ok := l.requestCache.Get(src); ok {
-				resp := respi.(string)
-				l.OutputChan <- resp
+	go func(){
+		for {
+			items := l.requestCache.Items()
+			for src := range items {
+				if respi, ok := l.requestCache.Get(src); ok {
+					resp := respi.(string)
+					l.OutputChan <- resp
+				}
 			}
+			time.Sleep(time.Millisecond * 500)
 		}
-		time.Sleep(time.Millisecond * 500)
-	}
+	}()
 }
 
 func (l *Listener) Accept() (net.Conn, error) {
