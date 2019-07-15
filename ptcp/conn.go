@@ -34,7 +34,7 @@ func (conn *Conn) Read(b []byte) (n int, err error) {
 		}
 	}()
 	s := <- conn.InputChan
-	data := []byte(s)
+	_,_,_,_,data,_ := header.Get([]byte(s))
 	ls, ln := len(data), len(b)
 	l := ls
 	if ln < ls {
