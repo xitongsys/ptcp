@@ -18,8 +18,8 @@ func BuildTcpPacket(ipHeader *IPv4, tcpHeader *TCP, data []byte) []byte {
 	bs := []byte{}
 	bs = append(bs, ipHeader.Marshal()...)
 	bs = append(bs, tcpHeader.Marshal()...)
-	ReCalTcpCheckSum(bs)
 	bs = append(bs, data...)
+	ReCalTcpCheckSum(bs)
 	return bs
 } 
 
