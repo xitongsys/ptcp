@@ -35,9 +35,22 @@ func NewListener(addr string) (*Listener, error) {
 		InputChan: make(chan string, LISTENERBUFSIZE),
 		OutputChan: make(chan string, LISTENERBUFSIZE),
 
-		requestCache: cache.New(30*time.Second, 10*time.Minute),
+		requestCache: cache.New(10*time.Second, 1*time.Minute),
 
 	}, nil
+}
+
+func (l *Listener) sendResponse() {
+	for {
+		items := l.requestCache.Items()
+		for src := range items {
+			if respi, ok := l.requestCache.Get(src); ok {
+				resp := respi.(string)
+				l.OutputChan <- resp
+			}
+		}
+		time.Sleep(time.Millisecond * 500)
+	}
 }
 
 func (l *Listener) Accept() (net.Conn, error) {
@@ -51,12 +64,12 @@ func (l *Listener) Accept() (net.Conn, error) {
 			ipHeaderTo, tcpHeaderTo := header.BuildTcpHeader(dst, src)
 			tcpHeaderTo.Seq, tcpHeaderTo.Ack = uint32(seq), uint32(ack)
 			tcpHeaderTo.Flags = header.SYNACK
-			l.requestCache.Set(src, ack, cache.DefaultExpiration)
-			l.OutputChan <- string(header.BuildTcpPacket(ipHeaderTo, tcpHeaderTo, []byte{}))
+			response := string(header.BuildTcpPacket(ipHeaderTo, tcpHeaderTo, []byte{}))
+			l.requestCache.Set(src, response, cache.DefaultExpiration)
+			l.OutputChan <- response
 
 		}else if tcpHeader.Flags == header.ACK && len(data) == 0 {
-			if acki, ok := l.requestCache.Get(src); ok && acki.(uint32) == tcpHeader.Seq {
-				log.Println("======handshake3", src, dst, acki)
+			if _, ok := l.requestCache.Get(src); ok {
 				l.requestCache.Delete(src)
 				conn := NewConn(dst, src)
 				ptcpServer.CreateConn(dst, src, conn)
