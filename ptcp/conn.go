@@ -26,12 +26,32 @@ type Conn struct {
 }
 
 func NewConn(localAddr string, remoteAddr string, state int) *Conn {
-	return &Conn{
+	conn := &Conn{
 		localAddress:  NewAddr(localAddr),
 		remoteAddress: NewAddr(remoteAddr),
 		InputChan:     make(chan string, CONNCHANBUFSIZE),
 		OutputChan:    make(chan string, CONNCHANBUFSIZE),
 		State:         state,
+	}
+	go conn.keepAlive()
+	return conn
+}
+
+func (conn *Conn) keepAlive() {
+	for {
+		if conn.State == CLOSED || conn.State == CLOSING {
+			return
+
+		} else if conn.State == CONNECTED {
+			ipHeader, tcpHeader := header.BuildTcpHeader(conn.LocalAddr().String(), conn.RemoteAddr().String())
+			tcpHeader.Flags = header.ACK
+			tcpHeader.Ack = 2
+			tcpHeader.Seq = 2
+
+			packet := header.BuildTcpPacket(ipHeader, tcpHeader, []byte{})
+			conn.OutputChan <- string(packet)
+		}
+		time.Sleep(time.Second)
 	}
 }
 
@@ -46,17 +66,23 @@ func (conn *Conn) Read(b []byte) (n int, err error) {
 		return -1, fmt.Errorf("closed")
 	}
 
-	s := <-conn.InputChan
-	_, _, _, _, data, _ := header.Get([]byte(s))
-	ls, ln := len(data), len(b)
-	l := ls
-	if ln < ls {
-		l = ln
+	for {
+		s := <-conn.InputChan
+		_, _, _, _, data, _ := header.Get([]byte(s))
+		ls, ln := len(data), len(b)
+		if ln <= 0 {
+			continue
+		}
+
+		l := ls
+		if ln < ls {
+			l = ln
+		}
+		for i := 0; i < l; i++ {
+			b[i] = data[i]
+		}
+		return ls, nil
 	}
-	for i := 0; i < l; i++ {
-		b[i] = data[i]
-	}
-	return ls, nil
 }
 
 //Block
