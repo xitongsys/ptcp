@@ -3,10 +3,9 @@ package ptcp
 import (
 	"net"
 	"time"
-	"log"
 
-	"github.com/xitongsys/ptcp/header"
 	"github.com/patrickmn/go-cache"
+	"github.com/xitongsys/ptcp/header"
 )
 
 var LISTENERBUFSIZE = 1024
@@ -16,14 +15,14 @@ func Listen(proto, addr string) (net.Listener, error) {
 		ptcpServer.CreateListener(addr, listener)
 		return listener, err
 
-	}else{
+	} else {
 		return nil, err
 	}
 }
 
 type Listener struct {
-	Address string
-	InputChan chan string
+	Address    string
+	InputChan  chan string
 	OutputChan chan string
 
 	requestCache *cache.Cache
@@ -31,19 +30,18 @@ type Listener struct {
 
 func NewListener(addr string) (*Listener, error) {
 	listener := &Listener{
-		Address: addr,
-		InputChan: make(chan string, LISTENERBUFSIZE),
+		Address:    addr,
+		InputChan:  make(chan string, LISTENERBUFSIZE),
 		OutputChan: make(chan string, LISTENERBUFSIZE),
 
 		requestCache: cache.New(10*time.Second, 1*time.Minute),
-
 	}
 	listener.sendResponse()
 	return listener, nil
 }
 
 func (l *Listener) sendResponse() {
-	go func(){
+	go func() {
 		for {
 			items := l.requestCache.Items()
 			for src := range items {
@@ -59,12 +57,11 @@ func (l *Listener) sendResponse() {
 
 func (l *Listener) Accept() (net.Conn, error) {
 	for {
-		packet := <- l.InputChan
+		packet := <-l.InputChan
 		_, _, _, tcpHeader, data, _ := header.Get([]byte(packet))
 		_, src, dst, _ := header.GetBase([]byte(packet))
 		if tcpHeader.Flags == header.SYN && len(data) == 0 {
-			seq, ack := 0, tcpHeader.Seq + 1
-			log.Println("======handshake1", src, dst,seq,ack)
+			seq, ack := 0, tcpHeader.Seq+1
 			ipHeaderTo, tcpHeaderTo := header.BuildTcpHeader(dst, src)
 			tcpHeaderTo.Seq, tcpHeaderTo.Ack = uint32(seq), uint32(ack)
 			tcpHeaderTo.Flags = (header.SYN | header.ACK)
@@ -72,7 +69,7 @@ func (l *Listener) Accept() (net.Conn, error) {
 			l.requestCache.Set(src, response, cache.DefaultExpiration)
 			l.OutputChan <- response
 
-		}else if tcpHeader.Flags == header.ACK && len(data) == 0 {
+		} else if tcpHeader.Flags == header.ACK && len(data) == 0 {
 			if _, ok := l.requestCache.Get(src); ok {
 				l.requestCache.Delete(src)
 				conn := NewConn(dst, src, CONNECTED)
@@ -83,16 +80,16 @@ func (l *Listener) Accept() (net.Conn, error) {
 	}
 }
 
-func (l *Listener) Close() (error) {
-	go func(){
-		defer func(){
+func (l *Listener) Close() error {
+	go func() {
+		defer func() {
 			recover()
 		}()
 		close(l.InputChan)
 	}()
 
-	go func(){
-		defer func(){
+	go func() {
+		defer func() {
 			recover()
 		}()
 		close(l.OutputChan)

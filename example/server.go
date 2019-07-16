@@ -16,6 +16,7 @@ func main() {
 
 	for {
 		if conn, err := ln.Accept(); err == nil {
+			fmt.Println("new connection: ", conn.RemoteAddr())
 			go func() {
 				buf := make([]byte, 100)
 				for {

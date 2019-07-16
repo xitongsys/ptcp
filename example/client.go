@@ -25,5 +25,8 @@ func main() {
 		fmt.Println(n, err)
 		fmt.Scanf("%d", &n)
 	}
-	conn.Close()
+
+	if err = conn.Close(); err != nil {
+		fmt.Println("close error", err)
+	}
 }

@@ -30,7 +30,6 @@ func Dial(proto string, remoteAddr string) (net.Conn, error) {
 	done := make(chan int)
 	go func() {
 		for i := 0; i < RETRYTIME; i++ {
-			fmt.Println("====write retry")
 			select {
 			case <-done:
 				return
