@@ -57,8 +57,8 @@ func (conn *Conn) keepAlive() {
 		} else if conn.State == CONNECTED {
 			ipHeader, tcpHeader := header.BuildTcpHeader(conn.LocalAddr().String(), conn.RemoteAddr().String())
 			tcpHeader.Flags = header.ACK
-			tcpHeader.Ack = 2
-			tcpHeader.Seq = 2
+			tcpHeader.Ack = 1
+			tcpHeader.Seq = 1
 
 			packet := header.BuildTcpPacket(ipHeader, tcpHeader, []byte{})
 			conn.OutputChan <- string(packet)
@@ -110,8 +110,8 @@ func (conn *Conn) Write(b []byte) (n int, err error) {
 
 	ipHeader, tcpHeader := header.BuildTcpHeader(conn.LocalAddr().String(), conn.RemoteAddr().String())
 	tcpHeader.Flags = 0x18
-	tcpHeader.Ack = 2
-	tcpHeader.Seq = 2
+	tcpHeader.Ack = 1
+	tcpHeader.Seq = 1
 
 	packet := header.BuildTcpPacket(ipHeader, tcpHeader, b)
 	conn.OutputChan <- string(packet)
@@ -170,8 +170,8 @@ func (conn *Conn) CloseRequest() (err error) {
 
 	conn.State = CLOSING
 	ipHeader, tcpHeader := header.BuildTcpHeader(conn.LocalAddr().String(), conn.RemoteAddr().String())
-	tcpHeader.Seq = 3
-	tcpHeader.Ack = 3
+	tcpHeader.Seq = 1
+	tcpHeader.Ack = 1
 	tcpHeader.Flags = header.FIN
 	packet := header.BuildTcpPacket(ipHeader, tcpHeader, []byte{})
 
@@ -194,7 +194,7 @@ func (conn *Conn) CloseRequest() (err error) {
 	for !timeOut {
 		if n, err := conn.ReadWithHeader(buf); n > 0 && err == nil {
 			_, _, _, tcpHeader, _, _ := header.Get(buf[:n])
-			if tcpHeader.Flags == (header.ACK|header.FIN) && tcpHeader.Ack == 3 {
+			if tcpHeader.Flags == (header.ACK|header.FIN) && tcpHeader.Ack == 1 {
 				close(done)
 				break
 			}
@@ -213,8 +213,8 @@ func (conn *Conn) CloseRequest() (err error) {
 	}
 
 	ipHeader, tcpHeader = header.BuildTcpHeader(conn.LocalAddr().String(), conn.RemoteAddr().String())
-	tcpHeader.Seq = 3
-	tcpHeader.Ack = 3
+	tcpHeader.Seq = 1
+	tcpHeader.Ack = 1
 	tcpHeader.Flags = header.ACK
 	packet = header.BuildTcpPacket(ipHeader, tcpHeader, []byte{})
 	conn.WriteWithHeader(packet)
@@ -234,8 +234,8 @@ func (conn *Conn) CloseResponse() (err error) {
 	conn.State = CLOSING
 
 	ipHeader, tcpHeader := header.BuildTcpHeader(conn.LocalAddr().String(), conn.RemoteAddr().String())
-	tcpHeader.Seq = 3
-	tcpHeader.Ack = 3
+	tcpHeader.Seq = 1
+	tcpHeader.Ack = 1
 	tcpHeader.Flags = header.FIN | header.ACK
 	packet := header.BuildTcpPacket(ipHeader, tcpHeader, []byte{})
 
@@ -258,7 +258,7 @@ func (conn *Conn) CloseResponse() (err error) {
 	for !timeOut {
 		if n, err := conn.ReadWithHeader(buf); n > 0 && err == nil {
 			_, _, _, tcpHeader, _, _ := header.Get(buf[:n])
-			if tcpHeader.Flags == header.ACK && tcpHeader.Ack == 3 {
+			if tcpHeader.Flags == header.ACK && tcpHeader.Ack == 1 {
 				close(done)
 				break
 			}

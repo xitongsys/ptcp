@@ -66,10 +66,10 @@ func Dial(proto string, remoteAddr string) (net.Conn, error) {
 		return nil, err
 	}
 
-	seq, ack := 1, tcpHeader.Seq+1
+	//seq, ack := 1, tcpHeader.Seq+1
 	ipHeader, tcpHeader = header.BuildTcpHeader(localAddr.String(), remoteAddr)
-	tcpHeader.Seq = uint32(seq)
-	tcpHeader.Ack = ack
+	tcpHeader.Seq = 1
+	tcpHeader.Ack = 1
 	tcpHeader.Flags = header.ACK
 	packet = header.BuildTcpPacket(ipHeader, tcpHeader, []byte{})
 
