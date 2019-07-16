@@ -24,7 +24,7 @@ func main() {
 					if err == nil {
 						fmt.Println(n, string(buf[:n]))
 					} else {
-						fmt.Println("ERROR: ", err)
+						fmt.Printf("%v error: %v\n", conn.RemoteAddr(), err)
 						break
 					}
 				}

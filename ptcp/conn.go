@@ -2,6 +2,7 @@ package ptcp
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"time"
 
@@ -71,15 +72,19 @@ func (conn *Conn) keepAlive() {
 func (conn *Conn) Read(b []byte) (n int, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			n, err = -1, fmt.Errorf("closed: %v", r)
+			n, err = -1, io.EOF
 		}
 	}()
 	if conn.State != CONNECTED {
-		return -1, fmt.Errorf("closed")
+		return -1, io.EOF
 	}
 
 	for {
-		s := <-conn.InputChan
+		s, ok := <-conn.InputChan
+		if !ok {
+			return -1, io.EOF
+		}
+
 		_, _, _, _, data, _ := header.Get([]byte(s))
 		ls, ln := len(data), len(b)
 		if ls <= 0 {
@@ -101,11 +106,11 @@ func (conn *Conn) Read(b []byte) (n int, err error) {
 func (conn *Conn) Write(b []byte) (n int, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			n, err = -1, fmt.Errorf("closed: %v", r)
+			n, err = -1, io.EOF
 		}
 	}()
 	if conn.State != CONNECTED {
-		return -1, fmt.Errorf("closed")
+		return -1, io.EOF
 	}
 
 	ipHeader, tcpHeader := header.BuildTcpHeader(conn.LocalAddr().String(), conn.RemoteAddr().String())
@@ -122,7 +127,7 @@ func (conn *Conn) Write(b []byte) (n int, err error) {
 func (conn *Conn) ReadWithHeader(b []byte) (n int, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			n, err = -1, fmt.Errorf("closed: %v", r)
+			n, err = -1, io.EOF
 		}
 	}()
 
@@ -147,7 +152,7 @@ func (conn *Conn) ReadWithHeader(b []byte) (n int, err error) {
 func (conn *Conn) WriteWithHeader(b []byte) (n int, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			n, err = -1, fmt.Errorf("closed: %v", r)
+			n, err = -1, io.EOF
 		}
 	}()
 
