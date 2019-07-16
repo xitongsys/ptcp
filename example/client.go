@@ -9,7 +9,7 @@ import (
 
 func main() {
 	ptcp.Init("eth0")
-	conn, err := ptcp.Dial("ptcp", "47.240.40.78:12222")
+	conn, err := ptcp.Dial("ptcp", "127.0.0.1:12222")
 	if err != nil {
 		fmt.Println(err)
 		return
