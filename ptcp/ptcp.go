@@ -2,10 +2,9 @@ package ptcp
 
 import (
 	"sync"
-	"log"
 
-	"github.com/xitongsys/ptcp/raw"
 	"github.com/xitongsys/ptcp/header"
+	"github.com/xitongsys/ptcp/raw"
 )
 
 var BUFFERSIZE = 65535
@@ -13,7 +12,7 @@ var BUFFERSIZE = 65535
 var ptcpServer *PTCP
 
 func Init(interfaceName string) {
-	var err error 
+	var err error
 	if ptcpServer, err = NewPTCP(interfaceName); err != nil {
 		panic(err)
 	}
@@ -34,9 +33,9 @@ func NewPTCP(interfaceName string) (*PTCP, error) {
 		return nil, err
 	}
 	return &PTCP{
-		raw: r,
+		raw:            r,
 		routerListener: sync.Map{},
-		router: sync.Map{},
+		router:         sync.Map{},
 	}, nil
 }
 
@@ -45,9 +44,9 @@ func (p *PTCP) CloseListener(key string) {
 }
 
 func (p *PTCP) CreateListener(key string, listener *Listener) {
-	go func(){
+	go func() {
 		for {
-			s := <- listener.OutputChan
+			s := <-listener.OutputChan
 			p.raw.Write([]byte(s), key)
 		}
 	}()
@@ -56,35 +55,38 @@ func (p *PTCP) CreateListener(key string, listener *Listener) {
 
 func (p *PTCP) CreateConn(localAddr string, remoteAddr string, conn *Conn) {
 	key := localAddr + ":" + remoteAddr
-	go func(){
+	go func() {
 		for {
-			s := <- conn.OutputChan
+			s := <-conn.OutputChan
 			p.raw.Write([]byte(s), remoteAddr)
 		}
 	}()
 	p.router.Store(key, conn)
 }
 
-func (p *PTCP) CloseConn(key string){
+func (p *PTCP) CloseConn(key string) {
 	p.router.Delete(key)
 }
 
 func (p *PTCP) Start() {
-	go func(){
+	go func() {
 		for {
 			data, err := p.raw.Read()
 			if err == nil && len(data) > 0 {
 				if proto, src, dst, err := header.GetBase(data); err == nil && proto == "tcp" {
 					key := dst + ":" + src
+					_, _, _, tcpHeader, _, _ := header.Get(data)
 					if value, ok := p.router.Load(key); ok {
 						conn := value.(*Conn)
+						if tcpHeader.Flags == header.FIN {
+							go conn.CloseResponse()
+						}
 						select {
 						case conn.InputChan <- string(data):
 						default:
 						}
 
-					}else if value, ok := p.routerListener.Load(dst); ok {
-						log.Println("key======", key)
+					} else if value, ok := p.routerListener.Load(dst); ok {
 						listener := value.(*Listener)
 						select {
 						case listener.InputChan <- string(data):

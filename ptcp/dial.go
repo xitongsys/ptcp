@@ -1,15 +1,15 @@
 package ptcp
 
 import (
-	"net"
 	"fmt"
+	"net"
 	"time"
 
 	"github.com/xitongsys/ptcp/header"
 )
 
 const (
-	RETRYTIME = 5
+	RETRYTIME     = 5
 	RETRYINTERVAL = 500
 )
 
@@ -24,15 +24,15 @@ func Dial(proto string, remoteAddr string) (net.Conn, error) {
 
 	ipHeader, tcpHeader := header.BuildTcpHeader(localAddr.String(), remoteAddr)
 	tcpHeader.Seq = 0
-	tcpHeader.Flags = header.SYN;
+	tcpHeader.Flags = header.SYN
 	packet := header.BuildTcpPacket(ipHeader, tcpHeader, []byte{})
 
 	done := make(chan int)
 	go func() {
-		for i:=0; i<RETRYTIME; i++ {
+		for i := 0; i < RETRYTIME; i++ {
 			fmt.Println("====write retry")
 			select {
-			case <- done:
+			case <-done:
 				return
 			default:
 			}
@@ -46,16 +46,16 @@ func Dial(proto string, remoteAddr string) (net.Conn, error) {
 	buf := make([]byte, BUFFERSIZE)
 	timeOut := false
 	for !timeOut {
-		if n, err := conn.ReadWithHeader(buf); n>0 && err==nil{
-			_,_,_,tcpHeader,_,_ = header.Get(buf[:n])
-			if tcpHeader.Flags == (header.SYN | header.ACK) && tcpHeader.Ack == 1 {
+		if n, err := conn.ReadWithHeader(buf); n > 0 && err == nil {
+			_, _, _, tcpHeader, _, _ := header.Get(buf[:n])
+			if tcpHeader.Flags == (header.SYN|header.ACK) && tcpHeader.Ack == 1 {
 				close(done)
 				break
 			}
-		}	
+		}
 
 		select {
-		case <- after:
+		case <-after:
 			err = fmt.Errorf("timeout")
 			timeOut = true
 		default:
@@ -66,7 +66,7 @@ func Dial(proto string, remoteAddr string) (net.Conn, error) {
 		return nil, err
 	}
 
-	seq, ack := 1, tcpHeader.Seq + 1
+	seq, ack := 1, tcpHeader.Seq+1
 	ipHeader, tcpHeader = header.BuildTcpHeader(localAddr.String(), remoteAddr)
 	tcpHeader.Seq = uint32(seq)
 	tcpHeader.Ack = ack
