@@ -6,7 +6,7 @@ import (
 	"github.com/xitongsys/ptcp/ptcp"
 )
 
-func main(){
+func main() {
 	ptcp.Init("eth0")
 	ln, err := ptcp.Listen("ptcp", "172.17.41.89:12222")
 	if err != nil {
@@ -14,15 +14,21 @@ func main(){
 		return
 	}
 
-	conn, err := ln.Accept()
-	if err != nil {
-		fmt.Println(err)
-		return
+	for {
+		if conn, err := ln.Accept(); err == nil {
+			go func() {
+				buf := make([]byte, 100)
+				for {
+					n, err := conn.Read(buf)
+					if err == nil {
+						fmt.Println(n, string(buf[:n]))
+					} else {
+						fmt.Println("ERROR: ", err)
+						break
+					}
+				}
+			}()
+		}
 	}
 
-	buf := make([]byte, 100)
-	for {
-		n, err := conn.Read(buf)
-		fmt.Println(n, err, string(buf[:n]))
-	}
 }

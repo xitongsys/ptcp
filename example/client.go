@@ -6,7 +6,7 @@ import (
 	"github.com/xitongsys/ptcp/ptcp"
 )
 
-func main(){
+func main() {
 	ptcp.Init("eth0")
 	conn, err := ptcp.Dial("ptcp", "47.240.40.78:12222")
 	if err != nil {
@@ -16,12 +16,14 @@ func main(){
 
 	fmt.Println("connected.")
 
-	for {
-		n, err := conn.Write([]byte("hehe"))
+	for i := 0; i < 5; i++ {
+		data := conn.LocalAddr().String()
+		n, err := conn.Write([]byte("From: " + data))
 		if err != nil {
 			fmt.Println(err)
 		}
 		fmt.Println(n, err)
 		fmt.Scanf("%d", &n)
 	}
+	conn.Close()
 }
