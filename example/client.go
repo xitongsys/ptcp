@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/xitongsys/ptcp/ptcp"
 )
@@ -27,13 +28,12 @@ func main() {
 	}()
 
 	for i := 0; i < 5; i++ {
-		data := conn.LocalAddr().String()
-		n, err := conn.Write([]byte("From: " + data))
+		n, err := conn.Write([]byte("hello"))
 		if err != nil {
 			fmt.Println(err)
 		}
 		fmt.Println(n, err)
-		fmt.Scanf("%d", &n)
+		time.Sleep(time.Second)
 	}
 
 	if err = conn.Close(); err != nil {
