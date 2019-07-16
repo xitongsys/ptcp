@@ -14,7 +14,17 @@ func main() {
 		return
 	}
 
-	fmt.Println("connected.")
+	fmt.Println("connected")
+	go func() {
+		for {
+			buf := make([]byte, 1024)
+			if n, err := conn.Read(buf); err == nil {
+				fmt.Println("From server: ", string(buf[:n]))
+				continue
+			}
+			break
+		}
+	}()
 
 	for i := 0; i < 5; i++ {
 		data := conn.LocalAddr().String()
