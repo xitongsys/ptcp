@@ -9,7 +9,7 @@ import (
 )
 
 var CONNCHANBUFSIZE = 1024
-var CONNTIMEOUT = 20
+var CONNTIMEOUT = 200
 
 const (
 	CONNECTING = iota
@@ -46,7 +46,6 @@ func (conn *Conn) UpdateTime() {
 
 func (conn *Conn) IsTimeout() bool {
 	now := time.Now()
-	fmt.Println("====is timeout====", now.Sub(conn.LastUpdate))
 	return now.Sub(conn.LastUpdate) > time.Second*time.Duration(CONNTIMEOUT)
 }
 

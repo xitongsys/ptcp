@@ -1,7 +1,6 @@
 package ptcp
 
 import (
-	"log"
 	"sync"
 	"time"
 
@@ -47,7 +46,6 @@ func (p *PTCP) CleanTimeoutConns() {
 		p.router.Range(func(key interface{}, value interface{}) bool {
 			conn := value.(*Conn)
 			if conn.IsTimeout() {
-				log.Println("close timeout conn: ", key.(string))
 				conn.Close()
 			}
 			return true
@@ -81,7 +79,6 @@ func (p *PTCP) CreateConn(localAddr string, remoteAddr string, conn *Conn) {
 }
 
 func (p *PTCP) CloseConn(key string) {
-	log.Println("====close===", key)
 	p.router.Delete(key)
 }
 
@@ -99,7 +96,6 @@ func (p *PTCP) Start() {
 							go conn.CloseResponse()
 
 						} else if tcpHeader.Flags == header.ACK {
-							log.Println("update time: ", key)
 							conn.UpdateTime()
 						}
 
