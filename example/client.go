@@ -28,11 +28,10 @@ func main() {
 	}()
 
 	for i := 0; i < 5; i++ {
-		n, err := conn.Write([]byte("hello"))
+		_, err := conn.Write([]byte("hello"))
 		if err != nil {
 			fmt.Println(err)
 		}
-		fmt.Println(n, err)
 		time.Sleep(time.Second)
 	}
 
