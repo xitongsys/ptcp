@@ -1,7 +1,9 @@
 package ptcp
 
 import (
+	"log"
 	"sync"
+	"time"
 
 	"github.com/xitongsys/ptcp/header"
 	"github.com/xitongsys/ptcp/raw"
@@ -39,6 +41,20 @@ func NewPTCP(interfaceName string) (*PTCP, error) {
 	}, nil
 }
 
+func (p *PTCP) CleanTimeoutConns() {
+	for {
+		time.Sleep(time.Second * time.Duration(CONNTIMEOUT))
+		p.router.Range(func(key interface{}, value interface{}) bool {
+			conn := value.(*Conn)
+			if conn.IsTimeout() {
+				log.Println("close timeout conn: ", key.(string))
+				conn.Close()
+			}
+			return true
+		})
+	}
+}
+
 func (p *PTCP) CloseListener(key string) {
 	p.routerListener.Delete(key)
 }
@@ -65,6 +81,7 @@ func (p *PTCP) CreateConn(localAddr string, remoteAddr string, conn *Conn) {
 }
 
 func (p *PTCP) CloseConn(key string) {
+	log.Println("====close===", key)
 	p.router.Delete(key)
 }
 
@@ -80,7 +97,12 @@ func (p *PTCP) Start() {
 						conn := value.(*Conn)
 						if tcpHeader.Flags == header.FIN {
 							go conn.CloseResponse()
+
+						} else if tcpHeader.Flags == header.ACK {
+							log.Println("update time: ", key)
+							conn.UpdateTime()
 						}
+
 						select {
 						case conn.InputChan <- string(data):
 						default:
@@ -97,4 +119,5 @@ func (p *PTCP) Start() {
 			}
 		}
 	}()
+	go p.CleanTimeoutConns()
 }

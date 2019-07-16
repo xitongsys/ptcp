@@ -9,6 +9,7 @@ import (
 )
 
 var CONNCHANBUFSIZE = 1024
+var CONNTIMEOUT = 20
 
 const (
 	CONNECTING = iota
@@ -23,6 +24,7 @@ type Conn struct {
 	InputChan     chan string
 	OutputChan    chan string
 	State         int
+	LastUpdate    time.Time
 }
 
 func NewConn(localAddr string, remoteAddr string, state int) *Conn {
@@ -32,9 +34,20 @@ func NewConn(localAddr string, remoteAddr string, state int) *Conn {
 		InputChan:     make(chan string, CONNCHANBUFSIZE),
 		OutputChan:    make(chan string, CONNCHANBUFSIZE),
 		State:         state,
+		LastUpdate:    time.Now(),
 	}
 	go conn.keepAlive()
 	return conn
+}
+
+func (conn *Conn) UpdateTime() {
+	conn.LastUpdate = time.Now()
+}
+
+func (conn *Conn) IsTimeout() bool {
+	now := time.Now()
+	fmt.Println("====is timeout====", now.Sub(conn.LastUpdate))
+	return now.Sub(conn.LastUpdate) > time.Second*time.Duration(CONNTIMEOUT)
 }
 
 func (conn *Conn) keepAlive() {
