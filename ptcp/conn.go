@@ -70,7 +70,7 @@ func (conn *Conn) Read(b []byte) (n int, err error) {
 		s := <-conn.InputChan
 		_, _, _, _, data, _ := header.Get([]byte(s))
 		ls, ln := len(data), len(b)
-		if ln <= 0 {
+		if ls <= 0 {
 			continue
 		}
 
