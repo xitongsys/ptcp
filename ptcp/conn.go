@@ -197,6 +197,7 @@ func (conn *Conn) CloseResponse() (err error) {
 
 	defer func() {
 		conn.State = CLOSED
+		conn.Close()
 	}()
 	conn.State = CLOSING
 
