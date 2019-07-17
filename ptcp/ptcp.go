@@ -10,6 +10,7 @@ import (
 
 var BUFFERSIZE = 65535
 var CHANBUFFERSIZE = 1024
+var CN = 4
 
 var ptcpServer *PTCP
 
@@ -94,7 +95,7 @@ func (p *PTCP) Start() {
 		}
 	}()
 
-	for i := 0; i < 4; i++ {
+	for i := 0; i < CN; i++ {
 		go func() {
 			for {
 				ds := <-rawchan
