@@ -9,6 +9,7 @@ import (
 )
 
 var BUFFERSIZE = 65535
+var CHANBUFFERSIZE = 1024
 
 var ptcpServer *PTCP
 
@@ -83,37 +84,46 @@ func (p *PTCP) CloseConn(key string) {
 }
 
 func (p *PTCP) Start() {
+	rawchan := make(chan string, CHANBUFFERSIZE)
 	go func() {
 		for {
 			data, err := p.raw.Read()
 			if err == nil && len(data) > 0 {
-				if proto, src, dst, err := header.GetBase(data); err == nil && proto == "tcp" {
-					key := dst + ":" + src
-					_, _, _, tcpHeader, _, _ := header.Get(data)
-					if value, ok := p.router.Load(key); ok {
-						conn := value.(*Conn)
-						if tcpHeader.Flags == header.FIN {
-							go conn.CloseResponse()
-
-						} else if tcpHeader.Flags == header.ACK {
-							conn.UpdateTime()
-						}
-
-						select {
-						case conn.InputChan <- string(data):
-						default:
-						}
-
-					} else if value, ok := p.routerListener.Load(dst); ok {
-						listener := value.(*Listener)
-						select {
-						case listener.InputChan <- string(data):
-						default:
-						}
-					}
-				}
+				rawchan <- string(data)
 			}
 		}
 	}()
+
+	for i := 0; i < 4; i++ {
+		go func() {
+			ds := <-rawchan
+			data := []byte(ds)
+			if proto, src, dst, err := header.GetBase(data); err == nil && proto == "tcp" {
+				key := dst + ":" + src
+				_, _, _, tcpHeader, _, _ := header.Get(data)
+				if value, ok := p.router.Load(key); ok {
+					conn := value.(*Conn)
+					if tcpHeader.Flags == header.FIN {
+						go conn.CloseResponse()
+
+					} else if tcpHeader.Flags == header.ACK {
+						conn.UpdateTime()
+					}
+
+					select {
+					case conn.InputChan <- string(data):
+					default:
+					}
+
+				} else if value, ok := p.routerListener.Load(dst); ok {
+					listener := value.(*Listener)
+					select {
+					case listener.InputChan <- string(data):
+					default:
+					}
+				}
+			}
+		}()
+	}
 	go p.CleanTimeoutConns()
 }
