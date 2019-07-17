@@ -11,16 +11,23 @@ func GetBase(data []byte) (proto string, src string, dst string, err error) {
 		return
 	}
 
-	iph.Unmarshal(data)
+	if err = iph.Unmarshal(data); err != nil {
+		return
+	}
+
 	if iph.Protocol == uint8(UDPID) {
 		proto = "udp"
-		udph.Unmarshal(data[iph.HeaderLen():])
+		if err = udph.Unmarshal(GetSubSlice(data, int(iph.HeaderLen()), len(data))); err != nil {
+			return
+		}
 		src = fmt.Sprintf("%s:%d", IP2Str(iph.Src), udph.SrcPort)
 		dst = fmt.Sprintf("%s:%d", IP2Str(iph.Dst), udph.DstPort)
 
 	} else if iph.Protocol == uint8(TCPID) {
 		proto = "tcp"
-		tcph.Unmarshal(data[iph.HeaderLen():])
+		if err = tcph.Unmarshal(GetSubSlice(data, int(iph.HeaderLen()), len(data))); err != nil {
+			return
+		}
 		src = fmt.Sprintf("%s:%d", IP2Str(iph.Src), tcph.SrcPort)
 		dst = fmt.Sprintf("%s:%d", IP2Str(iph.Dst), tcph.DstPort)
 
@@ -39,15 +46,22 @@ func Get(data []byte) (proto string, iph *IPv4, udph *UDP, tcph *TCP, packetData
 		return
 	}
 
-	iph.Unmarshal(data)
+	if err = iph.Unmarshal(data); err != nil {
+		return
+	}
+
 	if iph.Protocol == uint8(UDPID) {
 		proto = "udp"
-		udph.Unmarshal(data[iph.HeaderLen():])
+		if err = udph.Unmarshal(data[iph.HeaderLen():]); err != nil {
+			return
+		}
 		packetData = GetSubSlice(data, int(iph.HeaderLen()+8), int(iph.HeaderLen()+udph.LenBytes()))
 
 	} else if iph.Protocol == uint8(TCPID) {
 		proto = "tcp"
-		tcph.Unmarshal(data[iph.HeaderLen():])
+		if err = tcph.Unmarshal(data[iph.HeaderLen():]); err != nil {
+			return
+		}
 		packetData = GetSubSlice(data, int(iph.HeaderLen()+tcph.HeaderLen()), int(iph.LenBytes()))
 
 	} else {
