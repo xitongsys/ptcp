@@ -58,8 +58,8 @@ func (l *Listener) sendResponse() {
 func (l *Listener) Accept() (net.Conn, error) {
 	for {
 		packet := <-l.InputChan
-		_, _, _, tcpHeader, data, _ := header.Get([]byte(packet))
-		_, src, dst, _ := header.GetBase([]byte(packet))
+		_, ipHeader, _, tcpHeader, data, _ := header.Get([]byte(packet))
+		src, dst := header.GetTcpAddr(ipHeader, tcpHeader)
 		if tcpHeader.Flags == header.SYN && len(data) == 0 {
 			seq, ack := 0, tcpHeader.Seq+1
 			ipHeaderTo, tcpHeaderTo := header.BuildTcpHeader(dst, src)
