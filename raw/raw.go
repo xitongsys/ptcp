@@ -54,7 +54,7 @@ func (r *Raw) Read() ([]byte, error) {
 	return nil, err
 }
 
-func (r *Raw) Write(data []byte, addrs string) error {
+func (r *Raw) Write(data []byte) error {
 	eth := &header.Frame{}
 	eth.EtherType = header.EtherTypeIPv4
 	eth.Destination = header.Broadcast

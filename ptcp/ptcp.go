@@ -62,7 +62,7 @@ func (p *PTCP) CreateListener(key string, listener *Listener) {
 	go func() {
 		for {
 			s := <-listener.OutputChan
-			p.raw.Write([]byte(s), key)
+			p.raw.Write([]byte(s))
 		}
 	}()
 	p.routerListener.Store(key, listener)
@@ -73,7 +73,7 @@ func (p *PTCP) CreateConn(localAddr string, remoteAddr string, conn *Conn) {
 	go func() {
 		for {
 			s := <-conn.OutputChan
-			p.raw.Write([]byte(s), remoteAddr)
+			p.raw.Write([]byte(s))
 		}
 	}()
 	p.router.Store(key, conn)
