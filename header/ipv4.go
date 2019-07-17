@@ -68,7 +68,8 @@ func (h *IPv4) ResetChecksum() {
 }
 
 func (h *IPv4) Unmarshal(bs []byte) error {
-	if len(bs) < 20 {
+	lb := len(bs)
+	if lb < 20 {
 		return fmt.Errorf("too short")
 	}
 	h.VerIHL = uint8(bs[0])
@@ -82,7 +83,7 @@ func (h *IPv4) Unmarshal(bs []byte) error {
 	h.Src = binary.BigEndian.Uint32(bs[12:16])
 	h.Dst = binary.BigEndian.Uint32(bs[16:20])
 	headerLen := int(h.HeaderLen()) 
-	if headerLen > 20 {
+	if headerLen > 20 && headerLen <= lb {
 		h.Opt = bs[20:headerLen]
 	}else{
 		h.Opt = []byte{}
