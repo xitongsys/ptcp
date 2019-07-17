@@ -20,7 +20,7 @@ func main() {
 			fmt.Println("new connection: ", conn.RemoteAddr())
 			go func() {
 				for {
-					conn.Write([]byte("Hello"))
+					conn.Write([]byte(fmt.Sprintf("[%v] Hello", time.Now())))
 					time.Sleep(time.Second)
 				}
 			}()

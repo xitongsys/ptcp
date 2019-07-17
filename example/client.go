@@ -28,7 +28,7 @@ func main() {
 	}()
 
 	for i := 0; i < 5; i++ {
-		_, err := conn.Write([]byte("hello"))
+		_, err := conn.Write([]byte(fmt.Sprintf("[%v] hello", time.Now())))
 		if err != nil {
 			fmt.Println(err)
 		}
