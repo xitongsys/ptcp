@@ -14,8 +14,11 @@ var CN = 4
 
 var ptcpServer *PTCP
 
-func Init(interfaceName string) {
+func Init(interfaceName string, cn int) {
 	var err error
+	if cn > 0 {
+		CN = cn
+	}
 	if ptcpServer, err = NewPTCP(interfaceName); err != nil {
 		panic(err)
 	}
