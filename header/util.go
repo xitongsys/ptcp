@@ -94,3 +94,15 @@ func GetSubSlice(b []byte, bgn, end int) []byte {
 	}
 	return b[bgn:end]
 }
+
+func GetTcpAddr(iph *IPv4, tcph *TCP) (src string, dst string) {
+	srcIp, dstIp := IP2Str(iph.Src), IP2Str(iph.Dst)
+	srcPort, dstPort := tcph.SrcPort, tcph.DstPort
+	return fmt.Sprintf("%v:%v", srcIp, srcPort), fmt.Sprintf("%v:%v", dstIp, dstPort)
+}
+
+func GetUdpAddr(iph *IPv4, udph *UDP) (src string, dst string) {
+	srcIp, dstIp := IP2Str(iph.Src), IP2Str(iph.Dst)
+	srcPort, dstPort := udph.SrcPort, udph.DstPort
+	return fmt.Sprintf("%v:%v", srcIp, srcPort), fmt.Sprintf("%v:%v", dstIp, dstPort)
+}

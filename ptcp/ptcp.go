@@ -100,9 +100,9 @@ func (p *PTCP) Start() {
 			for {
 				ds := <-rawchan
 				data := []byte(ds)
-				if proto, src, dst, err := header.GetBase(data); err == nil && proto == "tcp" {
+				if proto, ipHeader, _, tcpHeader, _, err := header.Get(data); err == nil && proto == "tcp" {
+					src, dst := header.GetTcpAddr(ipHeader, tcpHeader)
 					key := dst + ":" + src
-					_, _, _, tcpHeader, _, _ := header.Get(data)
 					if value, ok := p.router.Load(key); ok {
 						conn := value.(*Conn)
 						if tcpHeader.Flags == header.FIN {
