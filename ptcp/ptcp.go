@@ -96,34 +96,37 @@ func (p *PTCP) Start() {
 
 	for i := 0; i < 4; i++ {
 		go func() {
-			ds := <-rawchan
-			data := []byte(ds)
-			if proto, src, dst, err := header.GetBase(data); err == nil && proto == "tcp" {
-				key := dst + ":" + src
-				_, _, _, tcpHeader, _, _ := header.Get(data)
-				if value, ok := p.router.Load(key); ok {
-					conn := value.(*Conn)
-					if tcpHeader.Flags == header.FIN {
-						go conn.CloseResponse()
+			for {
+				ds := <-rawchan
+				data := []byte(ds)
+				if proto, src, dst, err := header.GetBase(data); err == nil && proto == "tcp" {
+					key := dst + ":" + src
+					_, _, _, tcpHeader, _, _ := header.Get(data)
+					if value, ok := p.router.Load(key); ok {
+						conn := value.(*Conn)
+						if tcpHeader.Flags == header.FIN {
+							go conn.CloseResponse()
 
-					} else if tcpHeader.Flags == header.ACK {
-						conn.UpdateTime()
-					}
+						} else if tcpHeader.Flags == header.ACK {
+							conn.UpdateTime()
+						}
 
-					select {
-					case conn.InputChan <- string(data):
-					default:
-					}
+						select {
+						case conn.InputChan <- string(data):
+						default:
+						}
 
-				} else if value, ok := p.routerListener.Load(dst); ok {
-					listener := value.(*Listener)
-					select {
-					case listener.InputChan <- string(data):
-					default:
+					} else if value, ok := p.routerListener.Load(dst); ok {
+						listener := value.(*Listener)
+						select {
+						case listener.InputChan <- string(data):
+						default:
+						}
 					}
 				}
 			}
 		}()
 	}
+
 	go p.CleanTimeoutConns()
 }
