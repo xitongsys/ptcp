@@ -52,7 +52,7 @@ func Get(data []byte) (proto string, iph *IPv4, udph *UDP, tcph *TCP, packetData
 
 	if iph.Protocol == uint8(UDPID) {
 		proto = "udp"
-		if err = udph.Unmarshal(data[iph.HeaderLen():]); err != nil {
+		if err = udph.Unmarshal(GetSubSlice(data, int(iph.HeaderLen()), len(data))); err != nil {
 			return
 		}
 		packetData = GetSubSlice(data, int(iph.HeaderLen()+8), int(iph.HeaderLen()+udph.LenBytes()))
