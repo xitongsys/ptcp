@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/xitongsys/ptcp/header"
+	"github.com/xitongsys/ptcp/net"
 	"github.com/xitongsys/ptcp/raw"
 )
 
@@ -13,6 +14,8 @@ var CHANBUFFERSIZE = 1024
 var CN = 4
 
 var ptcpServer *PTCP
+var arp *net.Arp
+var route *net.Route
 
 func Init(interfaceName string, cn int) {
 	var err error
@@ -22,6 +25,15 @@ func Init(interfaceName string, cn int) {
 	if ptcpServer, err = NewPTCP(interfaceName); err != nil {
 		panic(err)
 	}
+
+	if arp, err = net.NewArp(); err != nil {
+		panic(err)
+	}
+
+	if route, err = net.NewRoute(); err != nil {
+		panic(err)
+	}
+
 	ptcpServer.Start()
 }
 
