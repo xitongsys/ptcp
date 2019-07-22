@@ -11,17 +11,13 @@ import (
 
 var BUFFERSIZE = 65535
 var CHANBUFFERSIZE = 1024
-var CN = 4
 
 var ptcpServer *PTCP
 var arp *net.Arp
 var route *net.Route
 
-func Init(interfaceName string, cn int) {
+func Init(interfaceName string) {
 	var err error
-	if cn > 0 {
-		CN = cn
-	}
 	if ptcpServer, err = NewPTCP(interfaceName); err != nil {
 		panic(err)
 	}
@@ -100,21 +96,10 @@ func (p *PTCP) CloseConn(key string) {
 }
 
 func (p *PTCP) Start() {
-	rawchan := make(chan string, CHANBUFFERSIZE)
 	go func() {
 		for {
 			data, err := p.raw.Read()
 			if err == nil && len(data) > 0 {
-				rawchan <- string(data)
-			}
-		}
-	}()
-
-	for i := 0; i < CN; i++ {
-		go func() {
-			for {
-				ds := <-rawchan
-				data := []byte(ds)
 				if proto, ipHeader, _, tcpHeader, _, err := header.Get(data); err == nil && proto == "tcp" {
 					src, dst := header.GetTcpAddr(ipHeader, tcpHeader)
 					key := dst + ":" + src
@@ -141,8 +126,8 @@ func (p *PTCP) Start() {
 					}
 				}
 			}
-		}()
-	}
+		}
+	}()
 
 	go p.CleanTimeoutConns()
 }

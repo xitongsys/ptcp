@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	ptcp.Init("eth0", 2)
+	ptcp.Init("eth0")
 	ln, err := ptcp.Listen("ptcp", "127.0.0.1:12222")
 	if err != nil {
 		fmt.Println(err)
