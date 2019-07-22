@@ -1,4 +1,4 @@
-package net
+package netinfo
 
 import (
 	"bufio"
@@ -9,26 +9,6 @@ import (
 )
 
 var ARPPATH = "/proc/net/arp"
-
-func hws2bs(s string) []byte {
-	ss := strings.Split(s, ":")
-	res := make([]byte, len(ss))
-	for i := 0; i < len(ss); i++ {
-		b, _ := strconv.ParseUint(ss[i], 16, 8)
-		res[i] = byte(b)
-	}
-	return res
-}
-
-func s2ip(s string) uint32 {
-	ss := strings.Split(s, ".")
-	res := uint32(0)
-	for i := 0; i < len(ss); i++ {
-		n, _ := strconv.ParseUint(ss[3-i], 10, 8)
-		res += (uint32(n) << uint32(i*8))
-	}
-	return res
-}
 
 type ArpItem struct {
 	Ip     uint32

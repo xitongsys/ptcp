@@ -1,4 +1,4 @@
-package net
+package netinfo
 
 import (
 	"bufio"
@@ -9,12 +9,6 @@ import (
 )
 
 var ROUTEPATH = "/proc/net/route"
-
-func ips2ip(s string) uint32 {
-	s = s[6:8] + s[4:6] + s[2:4] + s[0:2]
-	r, _ := strconv.ParseUint(s, 16, 32)
-	return uint32(r)
-}
 
 type RouteItem struct {
 	Dest    uint32
@@ -55,7 +49,7 @@ func (r *Route) Load(fname string) error {
 		}
 
 		ss := strings.Fields(string(line))
-		dev, dst, gateway, mask := ss[0], ips2ip(ss[1]), ips2ip(ss[2]), ips2ip(ss[7])
+		dev, dst, gateway, mask := ss[0], iprs2ip(ss[1]), iprs2ip(ss[2]), iprs2ip(ss[7])
 		r.routes = append(r.routes, RouteItem{
 			Dest:    dst,
 			Gateway: gateway,
