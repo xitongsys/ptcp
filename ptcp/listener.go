@@ -6,11 +6,18 @@ import (
 
 	"github.com/patrickmn/go-cache"
 	"github.com/xitongsys/ptcp/header"
+	"github.com/xitongsys/ptcp/netinfo"
 )
 
 var LISTENERBUFSIZE = 1024
 
 func Listen(proto, addr string) (net.Listener, error) {
+	ip := header.Str2IP(addr)
+	var iface *netinfo.LocalInterface
+	if iface = local.GetInterface(ip); iface == nil {
+		return nil, fmt.Errorf("can't bind addr: %v", addr)
+	}
+
 	if listener, err := NewListener(addr); err == nil {
 		ptcpServer.CreateListener(addr, listener)
 		return listener, err

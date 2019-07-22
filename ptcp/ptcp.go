@@ -15,6 +15,7 @@ var CHANBUFFERSIZE = 1024
 var ptcpServer *PTCP
 var arp *net.Arp
 var route *net.Route
+var local *net.Local
 
 func Init(interfaceName string) {
 	var err error
@@ -27,6 +28,10 @@ func Init(interfaceName string) {
 	}
 
 	if route, err = net.NewRoute(); err != nil {
+		panic(err)
+	}
+
+	if local, err = net.NewLocal(); err != nil {
 		panic(err)
 	}
 

@@ -51,3 +51,10 @@ func NewLocal() (*Local, error) {
 		localInterfaces: ifacesMap,
 	}
 }
+
+func (l *Local) GetInterface(ip uint32) LocalInterface {
+	if v, ok := l.localInterfaces[ip]; ok {
+		return v
+	}
+	return nil
+}
