@@ -1,6 +1,7 @@
 package ptcp
 
 import (
+	"fmt"
 	"net"
 	"syscall"
 
@@ -78,6 +79,8 @@ func (r *Raw) Write(data []byte) error {
 		}
 		eth.Destination = gateWayHwAddr
 	}
+
+	fmt.Println("=====", eth.Destination)
 
 	eth.Source = r.iface.HardwareAddr
 	eth.Payload = data

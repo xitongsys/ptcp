@@ -61,7 +61,22 @@ func (r *Arp) Load(fname string) error {
 		}
 
 		ss := strings.Fields(string(line))
-		ip, dev, hw := s2ip(ss[0]), ss[5], hws2bs(ss[3])
+		if len(ss) < 3 {
+			continue
+		}
+
+		ip, err := s2ip(ss[0])
+		if err != nil {
+			continue
+		}
+
+		hw, err := hws2bs(ss[3])
+		if err != nil {
+			continue
+		}
+
+		dev := ss[5]
+
 		r.arps[ip] = &ArpItem{
 			Ip:     ip,
 			Device: dev,
