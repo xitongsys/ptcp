@@ -11,11 +11,11 @@ type LocalInterface struct {
 }
 
 type Local struct {
-	localInterfaces map[uint32]LocalInterface
+	localInterfaces map[uint32]*LocalInterface
 }
 
 func NewLocal() (*Local, error) {
-	ifacesMap := map[uint32]LocalInterface{}
+	ifacesMap := map[uint32]*LocalInterface{}
 
 	ifaces, err := net.Interfaces()
 	if err != nil {
@@ -39,7 +39,7 @@ func NewLocal() (*Local, error) {
 				continue
 			}
 
-			ifacesMap[ip] = LocalInterface{
+			ifacesMap[ip] = &LocalInterface{
 				Ip:     ip,
 				Device: dev,
 				Mask:   mask,
@@ -49,12 +49,21 @@ func NewLocal() (*Local, error) {
 
 	return &Local{
 		localInterfaces: ifacesMap,
-	}
+	}, nil
 }
 
-func (l *Local) GetInterface(ip uint32) LocalInterface {
+func (l *Local) GetInterfaceByIp(ip uint32) *LocalInterface {
 	if v, ok := l.localInterfaces[ip]; ok {
 		return v
+	}
+	return nil
+}
+
+func (l *Local) GetInterfaceByName(name string) *LocalInterface {
+	for _, iface := range l.localInterfaces {
+		if iface.Device == name {
+			return iface
+		}
 	}
 	return nil
 }

@@ -5,17 +5,16 @@ import (
 	"time"
 
 	"github.com/xitongsys/ptcp/header"
-	"github.com/xitongsys/ptcp/net"
-	"github.com/xitongsys/ptcp/raw"
+	"github.com/xitongsys/ptcp/netinfo"
 )
 
 var BUFFERSIZE = 65535
 var CHANBUFFERSIZE = 1024
 
 var ptcpServer *PTCP
-var arp *net.Arp
-var route *net.Route
-var local *net.Local
+var arp *netinfo.Arp
+var route *netinfo.Route
+var local *netinfo.Local
 
 func Init(interfaceName string) {
 	var err error
@@ -23,15 +22,15 @@ func Init(interfaceName string) {
 		panic(err)
 	}
 
-	if arp, err = net.NewArp(); err != nil {
+	if arp, err = netinfo.NewArp(); err != nil {
 		panic(err)
 	}
 
-	if route, err = net.NewRoute(); err != nil {
+	if route, err = netinfo.NewRoute(); err != nil {
 		panic(err)
 	}
 
-	if local, err = net.NewLocal(); err != nil {
+	if local, err = netinfo.NewLocal(); err != nil {
 		panic(err)
 	}
 
@@ -39,7 +38,7 @@ func Init(interfaceName string) {
 }
 
 type PTCP struct {
-	raw *raw.Raw
+	raw *Raw
 	//Key: ip:port
 	routerListener sync.Map
 	//Key: localIp:localPort:remoteIp:remotePort
@@ -47,7 +46,7 @@ type PTCP struct {
 }
 
 func NewPTCP(interfaceName string) (*PTCP, error) {
-	r, err := raw.NewRaw(interfaceName)
+	r, err := NewRaw(interfaceName)
 	if err != nil {
 		return nil, err
 	}

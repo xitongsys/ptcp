@@ -2,9 +2,9 @@ package netinfo
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"os"
-	"strconv"
 	"strings"
 )
 
@@ -59,10 +59,9 @@ func (r *Arp) Load(fname string) error {
 	return nil
 }
 
-func (r *Arp) GetHwAddr(ip uint32) []byte {
-	var res []byte = nil
+func (r *Arp) GetHwAddr(ip uint32) ([]byte, error) {
 	if v, ok := r.arps[ip]; ok {
-		res = v.HwAddr
+		return v.HwAddr, nil
 	}
-	return res
+	return nil, fmt.Errorf("hw of ip not found")
 }

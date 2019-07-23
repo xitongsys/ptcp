@@ -2,9 +2,9 @@ package netinfo
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"os"
-	"strconv"
 	"strings"
 )
 
@@ -61,12 +61,12 @@ func (r *Route) Load(fname string) error {
 	return nil
 }
 
-func (r *Route) GetGateway(dst uint32) uint32 {
+func (r *Route) GetGateway(dst uint32) (uint32, error) {
 	ln := len(r.routes)
 	for i := ln - 1; i >= 0; i-- {
 		if dst&r.routes[i].Mask == r.routes[i].Dest {
-			return r.routes[i].Gateway
+			return r.routes[i].Gateway, nil
 		}
 	}
-	return 0
+	return 0, fmt.Errorf("can't find route")
 }

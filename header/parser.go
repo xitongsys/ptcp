@@ -1,8 +1,18 @@
 package header
 
 import (
+	"encoding/binary"
 	"fmt"
 )
+
+func GetIp(data []byte) (src uint32, dst uint32, err error) {
+	if len(data) < 20 {
+		return 0, 0, fmt.Errorf("packet too short")
+	}
+
+	src, dst, err = binary.BigEndian.Uint32(data[12:16]), binary.BigEndian.Uint32(data[16:20]), nil
+	return
+}
 
 func GetBase(data []byte) (proto string, src string, dst string, err error) {
 	iph, udph, tcph := IPv4{}, UDP{}, TCP{}

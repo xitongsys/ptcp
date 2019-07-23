@@ -1,6 +1,7 @@
 package ptcp
 
 import (
+	"fmt"
 	"net"
 	"time"
 
@@ -14,7 +15,7 @@ var LISTENERBUFSIZE = 1024
 func Listen(proto, addr string) (net.Listener, error) {
 	ip := header.Str2IP(addr)
 	var iface *netinfo.LocalInterface
-	if iface = local.GetInterface(ip); iface == nil {
+	if iface = local.GetInterfaceByIp(ip); iface == nil {
 		return nil, fmt.Errorf("can't bind addr: %v", addr)
 	}
 
