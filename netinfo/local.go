@@ -1,6 +1,7 @@
 package netinfo
 
 import (
+	"fmt"
 	"net"
 )
 
@@ -8,6 +9,10 @@ type LocalInterface struct {
 	Ip     uint32
 	Device string
 	Mask   uint32
+}
+
+func (li *LocalInterface) String() string {
+	return fmt.Sprintf("{Ip:%v, Device:%v, Mask:%v}", ip2s(li.Ip), li.Device, ip2s(li.Mask))
 }
 
 type Local struct {
@@ -52,18 +57,27 @@ func NewLocal() (*Local, error) {
 	}, nil
 }
 
-func (l *Local) GetInterfaceByIp(ip uint32) *LocalInterface {
-	if v, ok := l.localInterfaces[ip]; ok {
-		return v
+func (l *Local) String() string {
+	res := "{"
+	for _, li := range l.localInterfaces {
+		res += li.String()
 	}
-	return nil
+	res += "}"
+	return res
 }
 
-func (l *Local) GetInterfaceByName(name string) *LocalInterface {
+func (l *Local) GetInterfaceByIp(ip uint32) (*LocalInterface, error) {
+	if v, ok := l.localInterfaces[ip]; ok {
+		return v, nil
+	}
+	return nil, fmt.Errorf("ip %v not found", ip2s(ip))
+}
+
+func (l *Local) GetInterfaceByName(name string) (*LocalInterface, error) {
 	for _, iface := range l.localInterfaces {
 		if iface.Device == name {
-			return iface
+			return iface, nil
 		}
 	}
-	return nil
+	return nil, fmt.Errorf("interface %v not found", name)
 }

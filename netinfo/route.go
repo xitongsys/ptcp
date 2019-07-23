@@ -17,14 +17,27 @@ type RouteItem struct {
 	Device  string
 }
 
+func (ri *RouteItem) String() string {
+	return fmt.Sprintf("{Dest:%v, GateWay:%v, Mask:%v, Device:%v}", ip2s(ri.Dest), ip2s(ri.Gateway), ip2s(ri.Mask), ri.Device)
+}
+
 type Route struct {
-	routes []RouteItem
+	routes []*RouteItem
 }
 
 func NewRoute() (*Route, error) {
 	r := &Route{}
 	err := r.Load(ROUTEPATH)
 	return r, err
+}
+
+func (r *Route) String() string {
+	res := "["
+	for _, v := range r.routes {
+		res += v.String()
+	}
+	res += "]"
+	return res
 }
 
 func (r *Route) Load(fname string) error {
@@ -40,7 +53,7 @@ func (r *Route) Load(fname string) error {
 		return err
 	}
 
-	r.routes = []RouteItem{}
+	r.routes = []*RouteItem{}
 
 	for {
 		line, _, err := reader.ReadLine()
@@ -50,7 +63,7 @@ func (r *Route) Load(fname string) error {
 
 		ss := strings.Fields(string(line))
 		dev, dst, gateway, mask := ss[0], iprs2ip(ss[1]), iprs2ip(ss[2]), iprs2ip(ss[7])
-		r.routes = append(r.routes, RouteItem{
+		r.routes = append(r.routes, &RouteItem{
 			Dest:    dst,
 			Gateway: gateway,
 			Mask:    mask,

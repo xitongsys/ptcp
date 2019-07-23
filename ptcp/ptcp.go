@@ -25,14 +25,17 @@ func Init(interfaceName string) {
 	if arp, err = netinfo.NewArp(); err != nil {
 		panic(err)
 	}
+	//fmt.Println(arp)
 
 	if route, err = netinfo.NewRoute(); err != nil {
 		panic(err)
 	}
+	//fmt.Println(route)
 
 	if local, err = netinfo.NewLocal(); err != nil {
 		panic(err)
 	}
+	//fmt.Println(local)
 
 	ptcpServer.Start()
 }

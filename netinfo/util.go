@@ -1,6 +1,7 @@
 package netinfo
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -33,6 +34,10 @@ func s2ip(s string) uint32 {
 		res += (uint32(n) << uint32(i*8))
 	}
 	return res
+}
+
+func ip2s(ip uint32) string {
+	return fmt.Sprintf("%d.%d.%d.%d", (ip>>24)&(0xff), (ip>>16)&(0xff), (ip>>8)&(0xff), ip&(0xff))
 }
 
 //3A010000 -> uint32

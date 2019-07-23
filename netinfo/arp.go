@@ -16,14 +16,27 @@ type ArpItem struct {
 	HwAddr []byte
 }
 
+func (ai *ArpItem) String() string {
+	return fmt.Sprintf("{ip:%v, dev:%v, hw:%v}", ip2s(ai.Ip), ai.Device, ai.HwAddr)
+}
+
 type Arp struct {
-	arps map[uint32]ArpItem
+	arps map[uint32]*ArpItem
 }
 
 func NewArp() (*Arp, error) {
 	r := &Arp{}
 	err := r.Load(ARPPATH)
 	return r, err
+}
+
+func (r *Arp) String() string {
+	res := "{"
+	for _, item := range r.arps {
+		res += item.String()
+	}
+	res += "}"
+	return res
 }
 
 func (r *Arp) Load(fname string) error {
@@ -39,7 +52,7 @@ func (r *Arp) Load(fname string) error {
 		return err
 	}
 
-	r.arps = map[uint32]ArpItem{}
+	r.arps = map[uint32]*ArpItem{}
 
 	for {
 		line, _, err := reader.ReadLine()
@@ -49,7 +62,7 @@ func (r *Arp) Load(fname string) error {
 
 		ss := strings.Fields(string(line))
 		ip, dev, hw := s2ip(ss[0]), ss[5], hws2bs(ss[3])
-		r.arps[ip] = ArpItem{
+		r.arps[ip] = &ArpItem{
 			Ip:     ip,
 			Device: dev,
 			HwAddr: hw,
