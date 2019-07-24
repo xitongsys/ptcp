@@ -87,7 +87,7 @@ func (conn *Conn) Read(b []byte) (n int, err error) {
 
 		_, _, _, _, data, _ := header.Get([]byte(s))
 		ls, ln := len(data), len(b)
-		if ls <= 0 {
+		if ls < 0 {
 			continue
 		}
 
