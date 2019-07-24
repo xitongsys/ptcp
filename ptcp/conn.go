@@ -281,6 +281,9 @@ func (conn *Conn) CloseResponse() (err error) {
 
 func (conn *Conn) Close() error {
 	conn.CloseRequest()
+	key := conn.LocalAddr().String() + ":" + conn.RemoteAddr().String()
+	ptcpServer.CloseConn(key)
+
 	go func() {
 		defer func() {
 			recover()
@@ -293,8 +296,6 @@ func (conn *Conn) Close() error {
 		}()
 		close(conn.OutputChan)
 	}()
-	key := conn.LocalAddr().String() + ":" + conn.RemoteAddr().String()
-	ptcpServer.CloseConn(key)
 	return nil
 }
 
