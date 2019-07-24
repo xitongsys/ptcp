@@ -91,7 +91,10 @@ func (p *PTCP) CreateConn(localAddr string, remoteAddr string, conn *Conn) {
 	key := localAddr + ":" + remoteAddr
 	go func() {
 		for {
-			s := <-conn.OutputChan
+			s, ok := <-conn.OutputChan
+			if !ok {
+				return
+			}
 			p.raw.Write([]byte(s))
 		}
 	}()
