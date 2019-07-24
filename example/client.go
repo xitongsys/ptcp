@@ -19,11 +19,11 @@ func main() {
 	go func() {
 		for {
 			buf := make([]byte, 1024)
-			if n, err := conn.Read(buf); err == nil {
+			if n, err := conn.Read(buf); err == nil && n > 0 {
 				fmt.Println("From server: ", string(buf[:n]))
-				continue
+			} else if err != nil {
+				break
 			}
-			break
 		}
 	}()
 

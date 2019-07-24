@@ -29,9 +29,9 @@ func main() {
 				buf := make([]byte, 100)
 				for {
 					n, err := conn.Read(buf)
-					if err == nil {
+					if err == nil && n > 0 {
 						fmt.Printf("From %v: %v\n", conn.RemoteAddr(), string(buf[:n]))
-					} else {
+					} else if err != nil {
 						fmt.Printf("%v error: %v\n", conn.RemoteAddr(), err)
 						break
 					}
