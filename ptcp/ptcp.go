@@ -62,7 +62,7 @@ func NewPTCP(interfaceName string) (*PTCP, error) {
 
 func (p *PTCP) CleanTimeoutConns() {
 	for {
-		time.Sleep(time.Second * time.Duration(CONNTIMEOUT))
+		time.Sleep(time.Second * time.Duration(CONNTIMEOUT/2))
 		p.router.Range(func(key interface{}, value interface{}) bool {
 			conn := value.(*Conn)
 			if conn.IsTimeout() {
