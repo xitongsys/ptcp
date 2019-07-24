@@ -4,7 +4,7 @@ import (
 	"net"
 	"syscall"
 
-	"github.com/xitongsys/ptcp/header"
+	"github.com/xitongsys/ethernet-go/header"
 	"github.com/xitongsys/ptcp/util"
 )
 

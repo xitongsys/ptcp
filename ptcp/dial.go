@@ -5,7 +5,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/xitongsys/ptcp/header"
+	"github.com/xitongsys/ethernet-go/header"
 )
 
 const (

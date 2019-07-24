@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/patrickmn/go-cache"
-	"github.com/xitongsys/ptcp/header"
+	"github.com/xitongsys/ethernet-go/header"
 )
 
 var LISTENERBUFSIZE = 1024

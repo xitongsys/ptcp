@@ -6,7 +6,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/xitongsys/ptcp/header"
+	"github.com/xitongsys/ethernet-go/header"
 )
 
 var CONNCHANBUFSIZE = 1024
