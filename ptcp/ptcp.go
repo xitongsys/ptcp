@@ -118,7 +118,7 @@ func (p *PTCP) Start() {
 						if tcpHeader.Flags == header.FIN {
 							go conn.CloseResponse()
 
-						} else if tcpHeader.Flags == header.ACK {
+						} else if tcpHeader.Flags & header.ACK > 0 {
 							conn.UpdateTime()
 						}
 
