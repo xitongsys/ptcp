@@ -69,7 +69,7 @@ func (l *Listener) Accept() (net.Conn, error) {
 			l.requestCache.Set(src, response, cache.DefaultExpiration)
 			l.OutputChan <- response
 
-		} else if tcpHeader.Flags == header.ACK && len(data) == 0 {
+		} else if tcpHeader.Flags == header.ACK {
 			if _, ok := l.requestCache.Get(src); ok {
 				l.requestCache.Delete(src)
 				conn := NewConn(dst, src, CONNECTED)
