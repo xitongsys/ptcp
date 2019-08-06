@@ -10,7 +10,7 @@ import (
 )
 
 var CONNCHANBUFSIZE = 1024
-var CONNTIMEOUT = 20
+var CONNTIMEOUT = 60
 
 const (
 	CONNECTING = iota
