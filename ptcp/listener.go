@@ -11,6 +11,10 @@ import (
 var LISTENERBUFSIZE = 1024
 
 func Listen(proto, addr string) (net.Listener, error) {
+	if _, err := net.Listen("tcp", addr); err != nil {
+		return nil, err
+	}
+
 	if listener, err := NewListener(addr); err == nil {
 		ptcpServer.CreateListener(addr, listener)
 		return listener, err
